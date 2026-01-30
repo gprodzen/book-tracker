@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Database
+*.db
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+goodreads_library_export.csv
