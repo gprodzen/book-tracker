@@ -223,6 +223,92 @@
 }
 
 /* ==========================================================================
+   Spring Micro-Interaction Keyframes
+   ========================================================================== */
+
+@keyframes pressDown {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.97);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes springPop {
+    0% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.02);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes countReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.9);
+    }
+    60% {
+        transform: translateY(-2px) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes cardLift {
+    0% {
+        transform: translateY(0) scale(1);
+        box-shadow: var(--shadow-sm);
+    }
+    100% {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: var(--shadow-card-hover);
+    }
+}
+
+@keyframes progressGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(139, 69, 19, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 8px 2px rgba(139, 69, 19, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(139, 69, 19, 0.3);
+    }
+}
+
+@keyframes fabBounce {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.08);
+    }
+    70% {
+        transform: scale(0.98);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ==========================================================================
    Animation Utility Classes
    ========================================================================== */
 

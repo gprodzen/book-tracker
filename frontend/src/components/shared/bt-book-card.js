@@ -43,35 +43,41 @@ export class BtBookCard extends BaseComponent {
             .book-card {
                 background: var(--color-surface, #FFFFFF);
                 border: 1px solid var(--color-border, #D4C9B8);
-                border-radius: var(--radius-xl, 12px);
+                border-radius: var(--radius-xl, 18px);
                 overflow: hidden;
                 cursor: pointer;
-                transition: transform var(--duration-normal, 250ms) var(--ease-out),
-                            box-shadow var(--duration-normal, 250ms) var(--ease-out),
-                            border-color var(--duration-normal, 250ms) var(--ease-out);
+                transition:
+                    transform var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)),
+                    box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                    border-color var(--duration-fast, 150ms) var(--ease-out);
             }
 
             .book-card:hover {
-                transform: translateY(-4px);
+                transform: translateY(-6px) scale(1.01);
                 border-color: var(--color-accent, #8B4513);
                 box-shadow: var(--shadow-card-hover,
-                    0 8px 16px -4px rgba(44, 36, 22, 0.12),
-                    0 4px 8px -2px rgba(44, 36, 22, 0.08),
-                    0 0 0 1px rgba(139, 69, 19, 0.1));
+                    0 4px 8px rgba(44, 36, 22, 0.06),
+                    0 8px 24px rgba(44, 36, 22, 0.1),
+                    0 16px 32px rgba(44, 36, 22, 0.06),
+                    0 0 0 1px rgba(139, 69, 19, 0.08));
             }
 
             .book-card:active {
-                transform: translateY(-2px);
+                transform: translateY(-2px) scale(0.99);
+                transition: transform var(--duration-fast, 150ms) var(--ease-out);
             }
 
-            /* Cover image hover effect */
+            /* Cover image hover effect with zoom */
             .book-card bt-book-cover {
-                transition: filter var(--duration-normal, 250ms) var(--ease-out);
-                filter: grayscale(15%) brightness(0.95);
+                transition:
+                    filter var(--duration-normal, 250ms) var(--ease-out),
+                    transform var(--duration-normal, 250ms) var(--ease-out);
+                filter: grayscale(10%) brightness(0.97);
             }
 
             .book-card:hover bt-book-cover {
                 filter: grayscale(0%) brightness(1);
+                transform: scale(1.03);
             }
 
             .book-info {
@@ -172,28 +178,34 @@ export class BtBookCard extends BaseComponent {
                 background: var(--color-bg-tertiary, #EDE6DB);
                 padding: var(--space-3, 12px);
                 cursor: grab;
-                border-radius: var(--radius-lg, 8px);
+                border-radius: var(--radius-lg, 14px);
             }
 
             :host([variant="pipeline"]) .book-card:hover {
                 box-shadow: var(--shadow-md,
-                    0 4px 6px -1px rgba(44, 36, 22, 0.1),
-                    0 2px 4px -1px rgba(44, 36, 22, 0.06));
-                transform: none;
+                    0 2px 4px rgba(44, 36, 22, 0.06),
+                    0 4px 12px rgba(44, 36, 22, 0.08),
+                    0 8px 24px rgba(44, 36, 22, 0.04));
+                transform: translateY(-2px);
+            }
+
+            :host([variant="pipeline"]) .book-card:active {
+                transform: scale(0.99);
             }
 
             :host([variant="pipeline"]) .book-card.dragging {
-                opacity: 0.6;
+                opacity: 0.8;
                 cursor: grabbing;
                 transform: rotate(2deg) scale(1.02);
                 box-shadow: var(--shadow-xl,
-                    0 20px 25px -5px rgba(44, 36, 22, 0.1),
-                    0 10px 10px -5px rgba(44, 36, 22, 0.04));
+                    0 8px 16px rgba(44, 36, 22, 0.06),
+                    0 16px 32px rgba(44, 36, 22, 0.08),
+                    0 24px 48px rgba(44, 36, 22, 0.06));
             }
 
             :host([variant="pipeline"]) .book-card.drag-over {
                 border-color: var(--color-accent, #8B4513);
-                box-shadow: 0 0 0 2px var(--color-accent-muted, rgba(139, 69, 19, 0.15));
+                box-shadow: 0 0 0 3px var(--color-accent-muted, rgba(139, 69, 19, 0.15));
             }
 
             .pipeline-layout {
@@ -290,7 +302,7 @@ export class BtBookCard extends BaseComponent {
                ================================================================ */
             :host([data-stagger-index]) .book-card {
                 opacity: 0;
-                animation: cardSlideUp var(--duration-normal, 250ms) var(--ease-out) forwards;
+                animation: cardSpringIn var(--duration-slow, 350ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards;
             }
 
             :host([data-stagger-index="0"]) .book-card { animation-delay: 0ms; }
@@ -300,14 +312,42 @@ export class BtBookCard extends BaseComponent {
             :host([data-stagger-index="4"]) .book-card { animation-delay: 200ms; }
             :host([data-stagger-index="5"]) .book-card { animation-delay: 250ms; }
 
-            @keyframes cardSlideUp {
-                from {
+            @keyframes cardSpringIn {
+                0% {
                     opacity: 0;
-                    transform: translateY(12px);
+                    transform: translateY(16px) scale(0.95);
                 }
-                to {
+                60% {
+                    transform: translateY(-2px) scale(1.01);
+                }
+                100% {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .book-card {
+                    transition: border-color var(--duration-fast, 150ms) var(--ease-out);
+                }
+
+                .book-card:hover,
+                .book-card:active {
+                    transform: none;
+                }
+
+                .book-card bt-book-cover {
+                    transition: none;
+                }
+
+                .book-card:hover bt-book-cover {
+                    transform: none;
+                }
+
+                :host([data-stagger-index]) .book-card {
+                    animation: none;
+                    opacity: 1;
                 }
             }
         `;
