@@ -8,6 +8,8 @@ import '../shared/bt-loading.js';
 import '../shared/bt-book-cover.js';
 import '../shared/bt-progress-bar.js';
 import '../shared/bt-status-badge.js';
+import './bt-checkin-modal.js';
+import './bt-reading-history.js';
 
 export class BtBookDetail extends BaseComponent {
     static get observedAttributes() {
@@ -19,7 +21,9 @@ export class BtBookDetail extends BaseComponent {
         this.setState({
             loading: true,
             error: null,
-            book: null
+            book: null,
+            showCheckinModal: false,
+            historyExpanded: false
         });
     }
 
@@ -253,6 +257,121 @@ export class BtBookDetail extends BaseComponent {
                 background: var(--accent-hover, #A0522D);
             }
 
+            /* Check-in button */
+            .checkin-section {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .checkin-btn {
+                background: var(--accent, #8B4513) !important;
+                border-color: var(--accent, #8B4513) !important;
+                color: white !important;
+                padding: 10px 20px !important;
+                font-weight: 500;
+            }
+
+            .checkin-btn:hover:not(:disabled) {
+                background: var(--accent-hover, #A0522D) !important;
+            }
+
+            .last-read {
+                font-size: 0.8125rem;
+                color: var(--text-muted, #8B7E6A);
+            }
+
+            /* Checkin modal overlay */
+            .checkin-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .checkin-modal-content {
+                background: var(--surface, #FFFFFF);
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 480px;
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: var(--shadow-lg, 0 10px 25px rgba(44, 36, 22, 0.2));
+            }
+
+            .checkin-modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .checkin-modal-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--text, #2C2416);
+            }
+
+            .close-modal-btn {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--text-muted, #8B7E6A);
+                padding: 4px;
+                line-height: 1;
+            }
+
+            .close-modal-btn:hover {
+                color: var(--text, #2C2416);
+            }
+
+            /* Reading history section */
+            .history-section {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid var(--border, #D4C9B8);
+            }
+
+            .history-toggle {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: none;
+                border: none;
+                padding: 8px 0;
+                cursor: pointer;
+                color: var(--text, #2C2416);
+                font-size: 0.875rem;
+                font-weight: 500;
+                width: 100%;
+                text-align: left;
+            }
+
+            .history-toggle:hover {
+                color: var(--accent, #8B4513);
+            }
+
+            .history-toggle .chevron {
+                transition: transform var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            .history-toggle.expanded .chevron {
+                transform: rotate(90deg);
+            }
+
+            .history-content {
+                margin-top: 12px;
+            }
+
             @media (max-width: 768px) {
                 .book-detail {
                     grid-template-columns: 1fr;
@@ -285,6 +404,11 @@ export class BtBookDetail extends BaseComponent {
                     display: flex;
                     padding: 8px 0;
                     margin-right: 0;
+                }
+
+                .checkin-section {
+                    flex-direction: column;
+                    align-items: stretch;
                 }
             }
         `;
@@ -366,19 +490,35 @@ export class BtBookDetail extends BaseComponent {
             </div>
         `;
 
-        const progressSection = book.status === 'reading' ? `
+        const showCheckinSection = ['reading'].includes(book.status);
+        const showHistorySection = ['reading', 'finished', 'abandoned'].includes(book.status);
+        const sessionCount = book.reading_sessions?.length || 0;
+        const lastReadDate = book.last_read_at ? new Date(book.last_read_at).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric'
+        }) : null;
+
+        const checkinSection = showCheckinSection ? `
             <div class="section">
-                <h3>Update Progress</h3>
-                <div class="progress-inputs">
-                    <div class="progress-input-group">
-                        <label>Current Page</label>
-                        <input type="number" ref="progressInput" value="${book.current_page || 0}" min="0" max="${book.page_count || 9999}">
-                    </div>
-                    <div class="progress-input-group">
-                        <label>of ${book.page_count || '?'} pages</label>
-                    </div>
-                    <button class="primary" ref="saveProgressBtn">Save</button>
+                <h3>Reading Progress</h3>
+                <div class="checkin-section">
+                    <button class="checkin-btn" ref="checkinBtn">Check In</button>
+                    ${lastReadDate ? `<span class="last-read">Last read: ${lastReadDate}</span>` : ''}
+                    ${sessionCount > 0 ? `<span class="last-read">${sessionCount} session${sessionCount !== 1 ? 's' : ''}</span>` : ''}
                 </div>
+            </div>
+        ` : '';
+
+        const historySection = showHistorySection ? `
+            <div class="history-section">
+                <button class="history-toggle ${this.state.historyExpanded ? 'expanded' : ''}" ref="historyToggle">
+                    <span class="chevron">&#9654;</span>
+                    Reading History
+                </button>
+                ${this.state.historyExpanded ? `
+                    <div class="history-content">
+                        <bt-reading-history ref="readingHistory"></bt-reading-history>
+                    </div>
+                ` : ''}
             </div>
         ` : '';
 
@@ -450,7 +590,9 @@ export class BtBookDetail extends BaseComponent {
                         <div class="description">${this.escapeHtml(book.description)}</div>
                     ` : ''}
 
-                    ${progressSection}
+                    ${checkinSection}
+
+                    ${historySection}
 
                     ${sparkedBooksHtml}
 
@@ -459,11 +601,23 @@ export class BtBookDetail extends BaseComponent {
                     </div>
                 </div>
             </div>
+
+            ${this.state.showCheckinModal ? `
+                <div class="checkin-modal-overlay" ref="modalOverlay">
+                    <div class="checkin-modal-content">
+                        <div class="checkin-modal-header">
+                            <span class="checkin-modal-title">Log Reading Progress</span>
+                            <button class="close-modal-btn" ref="closeModalBtn">&times;</button>
+                        </div>
+                        <bt-checkin-modal ref="checkinModal"></bt-checkin-modal>
+                    </div>
+                </div>
+            ` : ''}
         `;
     }
 
     afterRender() {
-        const { book } = this.state;
+        const { book, showCheckinModal, historyExpanded } = this.state;
         if (!book) return;
 
         // Status change
@@ -481,13 +635,73 @@ export class BtBookDetail extends BaseComponent {
             });
         });
 
-        // Progress save
-        const saveProgressBtn = this.ref('saveProgressBtn');
-        const progressInput = this.ref('progressInput');
-        if (saveProgressBtn && progressInput) {
-            saveProgressBtn.addEventListener('click', async () => {
-                await this._updateBook({ current_page: parseInt(progressInput.value, 10) });
+        // Check-in button
+        const checkinBtn = this.ref('checkinBtn');
+        if (checkinBtn) {
+            checkinBtn.addEventListener('click', () => {
+                this.setState({ showCheckinModal: true });
             });
+        }
+
+        // Check-in modal
+        if (showCheckinModal) {
+            const checkinModal = this.ref('checkinModal');
+            const closeModalBtn = this.ref('closeModalBtn');
+            const modalOverlay = this.ref('modalOverlay');
+
+            if (checkinModal) {
+                checkinModal.book = book;
+                checkinModal.addEventListener('checkin-complete', async (e) => {
+                    this.setState({ showCheckinModal: false });
+                    await this._loadBook(book.book_id);
+                    this.emit('book-updated', { bookId: book.book_id });
+                    this.emit('toast', { message: 'Progress logged!', type: 'success' });
+                });
+                checkinModal.addEventListener('cancel', () => {
+                    this.setState({ showCheckinModal: false });
+                });
+            }
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => {
+                    this.setState({ showCheckinModal: false });
+                });
+            }
+
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) {
+                        this.setState({ showCheckinModal: false });
+                    }
+                });
+            }
+        }
+
+        // History toggle
+        const historyToggle = this.ref('historyToggle');
+        if (historyToggle) {
+            historyToggle.addEventListener('click', () => {
+                this.setState({ historyExpanded: !historyExpanded });
+            });
+        }
+
+        // Reading history component
+        if (historyExpanded) {
+            const readingHistory = this.ref('readingHistory');
+            if (readingHistory) {
+                readingHistory.bookId = book.book_id;
+                readingHistory.addEventListener('session-updated', async () => {
+                    await this._loadBook(book.book_id);
+                    this.emit('book-updated', { bookId: book.book_id });
+                });
+                readingHistory.addEventListener('session-deleted', async () => {
+                    await this._loadBook(book.book_id);
+                    this.emit('book-updated', { bookId: book.book_id });
+                });
+                readingHistory.addEventListener('toast', (e) => {
+                    this.emit('toast', e.detail);
+                });
+            }
         }
 
         // Add sparked book

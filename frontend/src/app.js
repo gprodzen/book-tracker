@@ -30,6 +30,8 @@ import './views/bt-paths-view.js';
 // Import book components
 import './components/books/bt-book-detail.js';
 import './components/books/bt-book-form.js';
+import './components/books/bt-checkin-modal.js';
+import './components/books/bt-reading-history.js';
 
 /**
  * Application class
