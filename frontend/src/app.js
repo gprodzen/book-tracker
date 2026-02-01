@@ -26,12 +26,16 @@ import './views/bt-dashboard-view.js';
 import './views/bt-library-view.js';
 import './views/bt-pipeline-view.js';
 import './views/bt-paths-view.js';
+import './views/bt-settings-view.js';
 
 // Import book components
 import './components/books/bt-book-detail.js';
 import './components/books/bt-book-form.js';
 import './components/books/bt-checkin-modal.js';
 import './components/books/bt-reading-history.js';
+
+// Import cover picker
+import './components/shared/bt-cover-picker.js';
 
 /**
  * Application class
@@ -153,6 +157,10 @@ class BookTrackerApp {
         this._viewContainer?.addEventListener('toast', (e) => {
             this._showToast(e.detail.message, e.detail.type);
         });
+
+        this._viewContainer?.addEventListener('change-cover', (e) => {
+            this._showCoverPicker(e.detail.bookId);
+        });
     }
 
     /**
@@ -216,7 +224,8 @@ class BookTrackerApp {
             dashboard: 'bt-dashboard-view',
             library: 'bt-library-view',
             pipeline: 'bt-pipeline-view',
-            paths: 'bt-paths-view'
+            paths: 'bt-paths-view',
+            settings: 'bt-settings-view'
         };
 
         const viewTag = viewMap[route] || viewMap.dashboard;
@@ -344,6 +353,13 @@ class BookTrackerApp {
 
         detail.addEventListener('toast', (e) => {
             this._showToast(e.detail.message, e.detail.type);
+        });
+
+        detail.addEventListener('change-cover', (e) => {
+            this._modal.close();
+            setTimeout(() => {
+                this._showCoverPicker(e.detail.bookId);
+            }, 100);
         });
 
         this._modal.setContent('Book Details', '');
@@ -536,6 +552,36 @@ class BookTrackerApp {
             console.error('Error loading books:', error);
             this._showToast('Failed to load books', 'error');
         }
+    }
+
+    /**
+     * Show cover picker modal
+     */
+    _showCoverPicker(bookId) {
+        if (!this._modal) return;
+
+        const picker = document.createElement('bt-cover-picker');
+        picker.setAttribute('book-id', bookId);
+
+        picker.addEventListener('cover-selected', async (e) => {
+            try {
+                await api.updateBookCover(bookId, e.detail.coverUrl);
+                this._modal.close();
+                this._showToast('Cover updated', 'success');
+                this._refreshCurrentView();
+            } catch (error) {
+                console.error('Error updating cover:', error);
+                this._showToast('Failed to update cover', 'error');
+            }
+        });
+
+        picker.addEventListener('cancel', () => {
+            this._modal.close();
+        });
+
+        this._modal.setContent('Choose Cover', '');
+        this._modal.appendChild(picker);
+        this._modal.open();
     }
 
     /**

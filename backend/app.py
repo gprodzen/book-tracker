@@ -8,10 +8,11 @@ import json
 import os
 import csv
 import io
+import time
 from functools import wraps
 from pathlib import Path
 from datetime import date
-from flask import Flask, jsonify, request, g, session, send_from_directory
+from flask import Flask, jsonify, request, g, session, send_from_directory, Response
 
 app = Flask(__name__, static_folder=None)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -532,6 +533,226 @@ def enrich_all_books():
         'failed': failed,
         'remaining': remaining,
     })
+
+
+@app.route('/api/books/missing-covers', methods=['GET'])
+@require_auth
+def get_missing_covers():
+    """Get books that don't have proper cover images."""
+    db = get_db()
+
+    # Books without covers or with ISBN-based fallback covers
+    cursor = db.execute('''
+        SELECT lv.* FROM library_view lv
+        JOIN books b ON lv.book_id = b.id
+        WHERE b.cover_image_url IS NULL
+           OR b.cover_image_url LIKE '%covers.openlibrary.org/b/isbn%'
+        ORDER BY lv.date_added DESC
+    ''')
+    books = [dict_from_row(row) for row in cursor.fetchall()]
+
+    return jsonify({
+        'books': books,
+        'count': len(books)
+    })
+
+
+@app.route('/api/books/<int:book_id>/cover-options', methods=['GET'])
+@require_auth
+def get_cover_options(book_id: int):
+    """Search Open Library for multiple cover options for a book."""
+    db = get_db()
+
+    cursor = db.execute('SELECT * FROM books WHERE id = ?', (book_id,))
+    book = cursor.fetchone()
+
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    book_dict = dict_from_row(book)
+    covers = []
+    seen_cover_ids = set()
+
+    # Search by ISBN first (most reliable)
+    if book_dict['isbn13']:
+        results = search_open_library(f"isbn:{book_dict['isbn13']}", limit=5)
+        for result in results:
+            cover_id = result.get('cover_i')
+            if cover_id and cover_id not in seen_cover_ids:
+                seen_cover_ids.add(cover_id)
+                covers.append(_build_cover_option(result, cover_id))
+
+    if book_dict['isbn'] and len(covers) < 12:
+        results = search_open_library(f"isbn:{book_dict['isbn']}", limit=5)
+        for result in results:
+            cover_id = result.get('cover_i')
+            if cover_id and cover_id not in seen_cover_ids:
+                seen_cover_ids.add(cover_id)
+                covers.append(_build_cover_option(result, cover_id))
+
+    # Then search by title + author
+    if len(covers) < 12:
+        query = f"{book_dict['title']} {book_dict['author']}"
+        results = search_open_library(query, limit=15)
+        for result in results:
+            cover_id = result.get('cover_i')
+            if cover_id and cover_id not in seen_cover_ids:
+                seen_cover_ids.add(cover_id)
+                covers.append(_build_cover_option(result, cover_id))
+                if len(covers) >= 12:
+                    break
+
+    return jsonify({
+        'book_id': book_id,
+        'title': book_dict['title'],
+        'author': book_dict['author'],
+        'covers': covers[:12]
+    })
+
+
+def _build_cover_option(ol_result: dict, cover_id: int) -> dict:
+    """Build a cover option object from an Open Library result."""
+    publishers = ol_result.get('publisher', [])
+    return {
+        'cover_id': cover_id,
+        'small': f"https://covers.openlibrary.org/b/id/{cover_id}-S.jpg",
+        'medium': f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg",
+        'large': f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg",
+        'edition_title': ol_result.get('title'),
+        'publisher': publishers[0] if publishers else None,
+        'year': ol_result.get('first_publish_year')
+    }
+
+
+@app.route('/api/books/<int:book_id>/cover', methods=['PATCH'])
+@require_auth
+def update_book_cover(book_id: int):
+    """Update a book's cover URL directly."""
+    db = get_db()
+    data = request.get_json()
+
+    cover_url = data.get('cover_url')
+    if not cover_url:
+        return jsonify({'error': 'cover_url is required'}), 400
+
+    cursor = db.execute('SELECT * FROM books WHERE id = ?', (book_id,))
+    book = cursor.fetchone()
+
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    db.execute('''
+        UPDATE books
+        SET cover_image_url = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (cover_url, book_id))
+    db.commit()
+
+    # Return updated book from library_view
+    cursor = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,))
+    updated_book = cursor.fetchone()
+
+    return jsonify(dict_from_row(updated_book))
+
+
+@app.route('/api/books/enrich-stream', methods=['GET'])
+@require_auth
+def enrich_stream():
+    """Stream cover enrichment progress via Server-Sent Events."""
+    db = get_db()
+
+    # Get books missing covers
+    cursor = db.execute('''
+        SELECT id, isbn, isbn13, title, author
+        FROM books
+        WHERE cover_image_url IS NULL OR cover_image_url LIKE '%covers.openlibrary.org/b/isbn%'
+    ''')
+    books = cursor.fetchall()
+
+    def generate():
+        total = len(books)
+        enriched = 0
+        failed = 0
+
+        # Send start event
+        yield f"data: {json.dumps({'type': 'start', 'total': total})}\n\n"
+
+        for i, book in enumerate(books):
+            book_dict = dict_from_row(book)
+            ol_book = None
+            status = 'not_found'
+            cover_url = None
+
+            # Rate limiting
+            if i > 0:
+                time.sleep(0.1)
+
+            # Try to find cover
+            if book_dict['isbn13']:
+                ol_book = get_open_library_book_by_isbn(book_dict['isbn13'])
+            if not ol_book and book_dict['isbn']:
+                ol_book = get_open_library_book_by_isbn(book_dict['isbn'])
+            if not ol_book:
+                results = search_open_library(f"{book_dict['title']} {book_dict['author']}", limit=1)
+                ol_book = results[0] if results else None
+
+            if ol_book:
+                info = extract_open_library_info(ol_book)
+                if info['cover_image_url']:
+                    # Update the database
+                    conn = sqlite3.connect(DATABASE)
+                    conn.execute('''
+                        UPDATE books
+                        SET google_books_id = ?,
+                            cover_image_url = ?,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    ''', (info['open_library_key'], info['cover_image_url'], book_dict['id']))
+                    conn.commit()
+                    conn.close()
+
+                    enriched += 1
+                    status = 'success'
+                    cover_url = info['cover_image_url']
+                else:
+                    failed += 1
+            else:
+                failed += 1
+
+            # Send progress event
+            progress = {
+                'type': 'progress',
+                'current': i + 1,
+                'total': total,
+                'percent': int(((i + 1) / total) * 100) if total > 0 else 100,
+                'book_id': book_dict['id'],
+                'book_title': book_dict['title'],
+                'status': status,
+                'cover_url': cover_url,
+                'enriched': enriched,
+                'failed': failed
+            }
+            yield f"data: {json.dumps(progress)}\n\n"
+
+        # Send complete event
+        complete = {
+            'type': 'complete',
+            'enriched': enriched,
+            'failed': failed,
+            'total': total
+        }
+        yield f"data: {json.dumps(complete)}\n\n"
+
+    return Response(
+        generate(),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'
+        }
+    )
 
 
 @app.route('/api/stats', methods=['GET'])

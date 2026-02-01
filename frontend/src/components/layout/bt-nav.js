@@ -288,7 +288,8 @@ export class BtNav extends BaseComponent {
             { name: 'dashboard', label: 'Dashboard' },
             { name: 'pipeline', label: 'Pipeline' },
             { name: 'paths', label: 'Paths' },
-            { name: 'library', label: 'Library' }
+            { name: 'library', label: 'Library' },
+            { name: 'settings', label: 'Settings' }
         ];
 
         return `

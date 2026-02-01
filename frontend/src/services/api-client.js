@@ -263,6 +263,22 @@ class ApiClient {
         return result;
     }
 
+    async getMissingCovers() {
+        return this.get('/books/missing-covers', { skipCache: true });
+    }
+
+    async getCoverOptions(bookId) {
+        return this.get(`/books/${bookId}/cover-options`, { skipCache: true });
+    }
+
+    async updateBookCover(bookId, coverUrl) {
+        const result = await this.patch(`/books/${bookId}/cover`, { cover_url: coverUrl });
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        events.emit(EVENT_NAMES.BOOK_UPDATED, result);
+        return result;
+    }
+
     // ==========================================
     // Reading Sessions API
     // ==========================================

@@ -226,4 +226,5 @@ router.register('dashboard', { title: 'Dashboard' });
 router.register('pipeline', { title: 'Pipeline' });
 router.register('library', { title: 'Library' });
 router.register('paths', { title: 'Learning Paths' });
+router.register('settings', { title: 'Settings' });
 router.register('login', { title: 'Sign In', requiresAuth: false });

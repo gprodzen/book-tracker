@@ -50,6 +50,24 @@ export class BtBookDetail extends BaseComponent {
                 overflow: hidden;
             }
 
+            .change-cover-btn {
+                width: 100%;
+                margin-top: 8px;
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text-muted, #8B7E6A);
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                transition: color 0.15s ease, border-color 0.15s ease;
+            }
+
+            .change-cover-btn:hover {
+                color: var(--accent, #8B4513);
+                border-color: var(--accent, #8B4513);
+            }
+
             .info-section h2 {
                 font-size: 1.25rem;
                 margin-bottom: 8px;
@@ -530,6 +548,7 @@ export class BtBookDetail extends BaseComponent {
                         title="${this.escapeHtml(book.title)}"
                         size="large"
                     ></bt-book-cover>
+                    <button class="change-cover-btn" ref="changeCoverBtn">Change Cover</button>
                 </div>
                 <div class="info-section">
                     <h2>${this.escapeHtml(book.title)}</h2>
@@ -709,6 +728,14 @@ export class BtBookDetail extends BaseComponent {
         if (addSparkBtn) {
             addSparkBtn.addEventListener('click', () => {
                 this.emit('add-sparked-book', { sourceBookId: book.book_id });
+            });
+        }
+
+        // Change cover
+        const changeCoverBtn = this.ref('changeCoverBtn');
+        if (changeCoverBtn) {
+            changeCoverBtn.addEventListener('click', () => {
+                this.emit('change-cover', { bookId: book.book_id });
             });
         }
 
