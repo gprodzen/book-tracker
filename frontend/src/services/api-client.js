@@ -264,6 +264,41 @@ class ApiClient {
     }
 
     // ==========================================
+    // Reading Sessions API
+    // ==========================================
+
+    async getSessions(bookId) {
+        return this.get(`/books/${bookId}/sessions`, {
+            cacheKey: `sessions:${bookId}`,
+            cacheTtl: CACHE_TTL.book
+        });
+    }
+
+    async createSession(bookId, data) {
+        const result = await this.post(`/books/${bookId}/sessions`, data);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`sessions:${bookId}`);
+        events.emit(EVENT_NAMES.BOOK_UPDATED, result.book);
+        return result;
+    }
+
+    async updateSession(bookId, sessionId, data) {
+        const result = await this.patch(`/books/${bookId}/sessions/${sessionId}`, data);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`sessions:${bookId}`);
+        return result;
+    }
+
+    async deleteSession(bookId, sessionId) {
+        await this.delete(`/books/${bookId}/sessions/${sessionId}`);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`sessions:${bookId}`);
+    }
+
+    // ==========================================
     // Learning Paths API
     // ==========================================
 

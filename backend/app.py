@@ -703,6 +703,236 @@ def update_book(book_id: int):
     return jsonify(updated_book)
 
 
+# --- Reading Sessions API ---
+
+@app.route('/api/books/<int:book_id>/sessions', methods=['GET'])
+@require_auth
+def get_book_sessions(book_id: int):
+    """Get all reading sessions for a book."""
+    db = get_db()
+
+    # Get user_book_id from book_id
+    cursor = db.execute('SELECT user_book_id FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+
+    cursor = db.execute('''
+        SELECT id, started_at, finished_at, pages_read, notes, created_at
+        FROM reading_sessions
+        WHERE user_book_id = ?
+        ORDER BY finished_at DESC, created_at DESC
+    ''', (user_book_id,))
+
+    sessions = [dict_from_row(row) for row in cursor.fetchall()]
+    return jsonify(sessions)
+
+
+@app.route('/api/books/<int:book_id>/sessions', methods=['POST'])
+@require_auth
+def create_book_session(book_id: int):
+    """Create a reading session (check-in) for a book."""
+    db = get_db()
+    data = request.get_json()
+
+    # Get book info
+    cursor = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    current_page = book['current_page'] or 0
+    page_count = book['page_count']
+
+    pages_read = data.get('pages_read', 0)
+    notes = data.get('notes', '')
+    mark_finished = data.get('mark_finished', False)
+
+    if pages_read <= 0:
+        return jsonify({'error': 'pages_read must be positive'}), 400
+
+    # Calculate page range for this session
+    start_page = current_page + 1
+    end_page = current_page + pages_read
+
+    # Create the session
+    cursor = db.execute('''
+        INSERT INTO reading_sessions (user_book_id, started_at, finished_at, pages_read, notes)
+        VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?)
+    ''', (user_book_id, None, pages_read, notes))
+    db.commit()
+    session_id = cursor.lastrowid
+
+    # Update user_books progress
+    new_page = current_page + pages_read
+    new_progress = min(100, int((new_page / page_count) * 100)) if page_count else 0
+
+    updates = {
+        'current_page': new_page,
+        'progress_percent': new_progress,
+        'last_read_at': 'CURRENT_TIMESTAMP'
+    }
+
+    # Handle mark as finished
+    new_status = book['status']
+    if mark_finished or (page_count and new_page >= page_count):
+        updates['progress_percent'] = 100
+        if page_count:
+            updates['current_page'] = page_count
+        if book['status'] == 'reading':
+            new_status = 'finished'
+            updates['status'] = 'finished'
+            updates['finished_reading_at'] = 'CURRENT_TIMESTAMP'
+
+    # Build and execute update
+    set_clauses = []
+    params = []
+    for key, val in updates.items():
+        if val == 'CURRENT_TIMESTAMP':
+            set_clauses.append(f'{key} = CURRENT_TIMESTAMP')
+        else:
+            set_clauses.append(f'{key} = ?')
+            params.append(val)
+
+    set_clauses.append('updated_at = CURRENT_TIMESTAMP')
+    params.append(user_book_id)
+
+    db.execute(f'UPDATE user_books SET {", ".join(set_clauses)} WHERE id = ?', params)
+    db.commit()
+
+    # Get the created session
+    cursor = db.execute('SELECT * FROM reading_sessions WHERE id = ?', (session_id,))
+    session = dict_from_row(cursor.fetchone())
+
+    # Get updated book
+    cursor = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,))
+    updated_book = dict_from_row(cursor.fetchone())
+
+    return jsonify({
+        'session': session,
+        'book': updated_book,
+        'start_page': start_page,
+        'end_page': min(end_page, page_count) if page_count else end_page
+    }), 201
+
+
+@app.route('/api/books/<int:book_id>/sessions/<int:session_id>', methods=['PATCH'])
+@require_auth
+def update_book_session(book_id: int, session_id: int):
+    """Update a reading session."""
+    db = get_db()
+    data = request.get_json()
+
+    # Verify book exists
+    cursor = db.execute('SELECT user_book_id, page_count FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    page_count = book['page_count']
+
+    # Verify session exists and belongs to this book
+    cursor = db.execute('''
+        SELECT * FROM reading_sessions WHERE id = ? AND user_book_id = ?
+    ''', (session_id, user_book_id))
+    session = cursor.fetchone()
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    old_pages_read = session['pages_read'] or 0
+
+    # Update session fields
+    updates = []
+    params = []
+    new_pages_read = old_pages_read
+
+    if 'pages_read' in data:
+        new_pages_read = data['pages_read']
+        updates.append('pages_read = ?')
+        params.append(new_pages_read)
+
+    if 'notes' in data:
+        updates.append('notes = ?')
+        params.append(data['notes'])
+
+    if not updates:
+        return jsonify({'error': 'No valid fields to update'}), 400
+
+    params.append(session_id)
+    db.execute(f'UPDATE reading_sessions SET {", ".join(updates)} WHERE id = ?', params)
+    db.commit()
+
+    # Recalculate current_page if pages_read changed
+    if new_pages_read != old_pages_read:
+        cursor = db.execute('''
+            SELECT COALESCE(SUM(pages_read), 0) as total_pages
+            FROM reading_sessions WHERE user_book_id = ?
+        ''', (user_book_id,))
+        total_pages = cursor.fetchone()['total_pages']
+
+        new_progress = min(100, int((total_pages / page_count) * 100)) if page_count else 0
+
+        db.execute('''
+            UPDATE user_books SET current_page = ?, progress_percent = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (total_pages, new_progress, user_book_id))
+        db.commit()
+
+    # Return updated session
+    cursor = db.execute('SELECT * FROM reading_sessions WHERE id = ?', (session_id,))
+    updated_session = dict_from_row(cursor.fetchone())
+
+    return jsonify(updated_session)
+
+
+@app.route('/api/books/<int:book_id>/sessions/<int:session_id>', methods=['DELETE'])
+@require_auth
+def delete_book_session(book_id: int, session_id: int):
+    """Delete a reading session and recalculate progress."""
+    db = get_db()
+
+    # Verify book exists
+    cursor = db.execute('SELECT user_book_id, page_count FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    page_count = book['page_count']
+
+    # Verify session exists and belongs to this book
+    cursor = db.execute('''
+        SELECT * FROM reading_sessions WHERE id = ? AND user_book_id = ?
+    ''', (session_id, user_book_id))
+    if not cursor.fetchone():
+        return jsonify({'error': 'Session not found'}), 404
+
+    # Delete the session
+    db.execute('DELETE FROM reading_sessions WHERE id = ?', (session_id,))
+    db.commit()
+
+    # Recalculate current_page from remaining sessions
+    cursor = db.execute('''
+        SELECT COALESCE(SUM(pages_read), 0) as total_pages
+        FROM reading_sessions WHERE user_book_id = ?
+    ''', (user_book_id,))
+    total_pages = cursor.fetchone()['total_pages']
+
+    new_progress = min(100, int((total_pages / page_count) * 100)) if page_count else 0
+
+    db.execute('''
+        UPDATE user_books SET current_page = ?, progress_percent = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (total_pages, new_progress, user_book_id))
+    db.commit()
+
+    return '', 204
+
+
 # --- Dashboard API ---
 
 @app.route('/api/dashboard', methods=['GET'])
