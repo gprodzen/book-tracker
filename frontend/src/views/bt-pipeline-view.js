@@ -207,6 +207,28 @@ export class BtPipelineView extends BaseComponent {
 
             bt-book-card {
                 display: block;
+                transition: transform var(--duration-fast, 150ms) var(--ease-out),
+                            opacity var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            bt-book-card.moving-out {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            bt-book-card.moving-in {
+                animation: card-appear var(--duration-normal, 250ms) var(--ease-out);
+            }
+
+            @keyframes card-appear {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
 
             /* Column-specific accent colors */
@@ -420,12 +442,13 @@ export class BtPipelineView extends BaseComponent {
         const newStatus = column.dataset.status;
         const oldStatus = this._draggedCard.dataset.status;
         const bookId = this._draggedCard.dataset.bookId;
+        const userBookId = this._draggedCard.dataset.userBookId;
 
         if (newStatus === oldStatus) return;
 
         // Check WIP limit for reading column
+        const { wipLimit, pipeline } = this.state;
         if (newStatus === 'reading') {
-            const { wipLimit, pipeline } = this.state;
             const currentReading = pipeline?.reading?.length || 0;
             if (currentReading >= wipLimit) {
                 this.emit('toast', {
@@ -436,11 +459,33 @@ export class BtPipelineView extends BaseComponent {
             }
         }
 
+        // Optimistic update - move book in local state immediately
+        const updatedPipeline = { ...pipeline };
+
+        // Find the book in the old column
+        const bookIndex = updatedPipeline[oldStatus]?.findIndex(b => b.book_id == bookId);
+        if (bookIndex === -1 || bookIndex === undefined) return;
+
+        const book = { ...updatedPipeline[oldStatus][bookIndex], status: newStatus };
+
+        // Remove from old column
+        updatedPipeline[oldStatus] = updatedPipeline[oldStatus].filter(b => b.book_id != bookId);
+
+        // Add to new column (at the beginning)
+        updatedPipeline[newStatus] = [book, ...(updatedPipeline[newStatus] || [])];
+
+        // Update state immediately for smooth UX
+        this.setState({ pipeline: updatedPipeline });
+
+        // API call in background
         try {
             await api.updateBook(bookId, { status: newStatus });
-            await this._loadData();
+            // Emit event for other views that might need to refresh
+            events.emit(EVENT_NAMES.BOOK_UPDATED, { bookId, status: newStatus });
         } catch (error) {
             console.error('Error updating book status:', error);
+            // Rollback on failure - reload from server
+            await this._loadData();
             this.emit('toast', { message: 'Failed to update book status', type: 'error' });
         }
     }

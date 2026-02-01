@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Tracker — New Experience Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --bg-soft: #f1ede6;
+      --panel: #ffffff;
+      --panel-muted: #fbfaf8;
+      --border: #e3ddd1;
+      --text: #2b2418;
+      --muted: #6b6051;
+      --accent: #8b5e34;
+      --accent-2: #2f6f6d;
+      --success: #2f8f5b;
+      --danger: #c7514d;
+      --shadow: 0 18px 40px rgba(40, 32, 20, 0.12);
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --grid-gap: 18px;
+      --card-padding: 18px;
+      --duration: 220ms;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(0deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02)),
+        repeating-linear-gradient(0deg, rgba(43,36,24,0.04) 0 1px, transparent 1px 24px),
+        radial-gradient(circle at 10% 10%, rgba(139,94,52,0.08), transparent 35%),
+        linear-gradient(180deg, #fbf9f4 0%, #f7f4ef 45%, #f1ede6 100%);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+      padding: 32px 24px 48px;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    h1 { font-size: 28px; font-family: 'Libre Baskerville', serif; }
+    h2 { font-size: 17px; color: var(--muted); font-weight: 600; }
+    p { margin: 0; color: var(--muted); }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 14px;
+    }
+
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      width: max-content;
+      box-shadow: 0 8px 18px rgba(40, 32, 20, 0.06);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: var(--grid-gap);
+    }
+
+    .grid.duo { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .grid.trio { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid.quad { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--card-padding);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--panel-muted);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff9f2;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(139,94,52,0.25);
+      transition: transform var(--duration) ease, box-shadow var(--duration) ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.secondary {
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+
+    /* Activity feed */
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .feed-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: var(--panel-muted);
+      border: 1px solid var(--border);
+    }
+    .feed-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(139,94,52,0.12);
+    }
+    .feed-meta { color: var(--muted); font-size: 12px; }
+    .note {
+      margin-top: 6px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    /* Log Update concept */
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .field label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .input, textarea {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      color: var(--text);
+      font-size: 14px;
+      transition: border var(--duration) ease, background var(--duration) ease;
+    }
+    .input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #ffffff;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #f2ede3;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b5e34, #b5834e);
+      border-radius: inherit;
+      width: 38%;
+      transition: width var(--duration) ease;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    /* Kanban */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .column {
+      background: var(--panel-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      min-height: 260px;
+      position: relative;
+    }
+    .column header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .column small { color: var(--muted); }
+    .kanban-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      position: relative;
+      cursor: grab;
+      transition: transform var(--duration) ease, border-color var(--duration) ease;
+    }
+    .kanban-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .status-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(47,111,109,0.12);
+      color: var(--accent-2);
+      border: 1px solid rgba(47,111,109,0.35);
+    }
+    .priority {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .progress-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(47,143,91,0.12);
+      color: var(--success);
+      border-radius: 10px;
+      border: 1px solid rgba(47,143,91,0.35);
+      font-size: 12px;
+      width: max-content;
+    }
+
+    /* Hover cues */
+    .concept-label {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--panel-muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 720px) {
+      body { padding: 24px 18px; }
+      h1 { font-size: 24px; }
+      .card { padding: 16px; }
+      .board { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <span class="tagline">Concept deck · Modern, confident, professional</span>
+      <h1>Book Tracker — Modern Reading Experience</h1>
+      <p>Preview of the re-imagined UI: fast “Log Update”, Strava-style feed, and confident Kanban polish. Use this to react and steer before we implement.</p>
+    </div>
+
+    <div class="grid duo">
+      <div class="card">
+        <div class="concept-label">Log Update · Primary</div>
+        <div class="section-head">
+          <div>
+            <h2>State-first logging</h2>
+            <p>Update current page or percent + add a note in one motion.</p>
+          </div>
+          <button class="btn">Quick Log</button>
+        </div>
+        <form class="form" id="log-form">
+          <div class="field">
+            <label>Book</label>
+            <select class="input" id="book-select">
+              <option>The Pragmatic Programmer</option>
+              <option>Designing Data-Intensive Applications</option>
+              <option>Wizard and Glass</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Progress mode</label>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn secondary" data-mode="page">By page</button>
+              <button type="button" class="btn secondary" data-mode="percent">By percent</button>
+            </div>
+          </div>
+          <div class="field" id="page-field">
+            <label>Current page</label>
+            <input class="input" type="number" min="0" value="120" id="page-input">
+            <div class="progress-meta">
+              <span>Pages</span>
+              <span id="page-meta">120 / 320</span>
+            </div>
+          </div>
+          <div class="field" id="percent-field" style="display:none;">
+            <label>Current percent</label>
+            <input class="input" type="number" min="0" max="100" value="38" id="percent-input">
+            <div class="progress-meta">
+              <span>Percent</span>
+              <span id="percent-meta">38%</span>
+            </div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="field">
+            <label>Note (optional)</label>
+            <textarea id="note-input" rows="3" placeholder="Capture what changed, links, /link another book..."></textarea>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" class="btn secondary">Cancel</button>
+            <button type="submit" class="btn">Save update</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="concept-label">Activity Feed</div>
+        <div class="section-head">
+          <div>
+            <h2>Strava-style feed</h2>
+            <p>Recent progress updates across your library with inline notes.</p>
+          </div>
+          <div class="pill" id="density-pill">Dense mode</div>
+        </div>
+        <div class="feed" id="feed"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="concept-label">Kanban · Confident</div>
+      <div class="section-head">
+        <div>
+          <h2>Pipeline with modern drag feel</h2>
+          <p>Drag handles, ghost placeholders, strong drop cues, touch-friendly.</p>
+        </div>
+        <div class="pill">Hold space to drag</div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <script>
+    const feedData = [
+      { book: "The Pragmatic Programmer", progress: "120 → 152 pages (47%)", note: "Big takeaway: tracer bullets clarify scope.", time: "6m ago", color: "var(--accent)" },
+      { book: "Designing Data-Intensive Applications", progress: "33% → 41%", note: "Revisited stream processing vs. batch. Need to diagram Kappa vs Lambda.", time: "48m ago", color: "var(--accent-2)" },
+      { book: "Wizard and Glass", progress: "52% → 60%", note: "", time: "2h ago", color: "var(--success)" },
+    ];
+
+    const boardData = {
+      reading: [
+        { title: "The Pragmatic Programmer", author: "Hunt, Thomas", progress: 47, priority: "P1", stale: false },
+        { title: "Wizard and Glass", author: "Stephen King", progress: 60, priority: "P2", stale: true },
+      ],
+      queued: [
+        { title: "Team Topologies", author: "Skelton, Pais", progress: 0, priority: "P1", stale: false },
+        { title: "How to Take Smart Notes", author: "Ahrens", progress: 0, priority: "P2", stale: false },
+      ],
+      finished: [
+        { title: "Continuous Discovery Habits", author: "Torres", progress: 100, priority: "Done", stale: false },
+      ]
+    };
+
+    const feedEl = document.getElementById('feed');
+    function renderFeed(dense = false) {
+      feedEl.innerHTML = "";
+      feedData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'feed-item';
+        div.style.padding = dense ? '10px' : '12px';
+        div.innerHTML = `
+          <span class="feed-dot" style="background:${item.color}; box-shadow:0 0 0 6px ${item.color}22;"></span>
+          <div>
+            <div style="font-weight:700;">${item.book}</div>
+            <div class="feed-meta">${item.progress} · ${item.time}</div>
+            ${item.note ? `<div class="note">${item.note}</div>` : ''}
+          </div>
+          <button class="btn secondary" style="padding:6px 10px;">Edit</button>
+        `;
+        feedEl.appendChild(div);
+      });
+    }
+    renderFeed();
+
+    const densityPill = document.getElementById('density-pill');
+    let dense = false;
+    densityPill.addEventListener('click', () => {
+      dense = !dense;
+      densityPill.textContent = dense ? 'Cozy mode' : 'Dense mode';
+      renderFeed(dense);
+    });
+
+    const boardEl = document.getElementById('board');
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      Object.entries(boardData).forEach(([status, cards]) => {
+        const column = document.createElement('div');
+        column.className = 'column';
+        const title = status.charAt(0).toUpperCase() + status.slice(1);
+        column.innerHTML = `
+          <header>
+            <span>${title}</span>
+            <small>${cards.length} cards</small>
+          </header>
+          <div style="display:grid; gap:10px;" data-status="${status}"></div>
+        `;
+        const list = column.querySelector('[data-status]');
+        cards.forEach(card => {
+          const c = document.createElement('div');
+          c.className = 'kanban-card';
+          c.innerHTML = `
+            <div class="card-top">
+              <div>
+                <div style="font-weight:700;">${card.title}</div>
+                <div style="color:var(--muted); font-size:12px;">${card.author}</div>
+              </div>
+              <div class="status-pill">${card.progress === 100 ? 'Finished' : 'Reading'}</div>
+            </div>
+            <div class="priority">
+              <span>Priority ${card.priority}</span>
+              ${card.stale ? '<span style="color:var(--danger);">Stale · needs touch</span>' : ''}
+            </div>
+            <div class="progress-chip">
+              <span>Progress</span>
+              <strong>${card.progress}%</strong>
+            </div>
+          `;
+          list.appendChild(c);
+        });
+        boardEl.appendChild(column);
+      });
+    }
+    renderBoard();
+
+    // Log form interactions
+    const pageField = document.getElementById('page-field');
+    const percentField = document.getElementById('percent-field');
+    const progressFill = document.getElementById('progress-fill');
+    const pageInput = document.getElementById('page-input');
+    const percentInput = document.getElementById('percent-input');
+
+    function setMode(mode) {
+      if (mode === 'page') {
+        pageField.style.display = 'grid';
+        percentField.style.display = 'none';
+        updateProgressFromPage();
+      } else {
+        pageField.style.display = 'none';
+        percentField.style.display = 'grid';
+        updateProgressFromPercent();
+      }
+    }
+
+    function updateProgressFromPage() {
+      const current = Number(pageInput.value || 0);
+      const total = 320;
+      const pct = Math.min(100, Math.round((current / total) * 100));
+      progressFill.style.width = pct + '%';
+      document.getElementById('page-meta').textContent = `${current} / ${total}`;
+    }
+    function updateProgressFromPercent() {
+      const pct = Math.min(100, Number(percentInput.value || 0));
+      progressFill.style.width = pct + '%';
+      document.getElementById('percent-meta').textContent = `${pct}%`;
+    }
+
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-mode]').forEach(b => b.classList.add('secondary'));
+        btn.classList.remove('secondary');
+        setMode(btn.dataset.mode);
+      });
+    });
+    pageInput.addEventListener('input', updateProgressFromPage);
+    percentInput.addEventListener('input', updateProgressFromPercent);
+    updateProgressFromPage();
+
+    document.getElementById('log-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert('This is a concept mock. In the real flow, this would post a state-first update with optional note.');
+    });
+  </script>
+</body>
+</html>

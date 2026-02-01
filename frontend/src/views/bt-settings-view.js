@@ -17,7 +17,12 @@ export class BtSettingsView extends BaseComponent {
             error: null,
             missingCovers: [],
             missingCount: 0,
-            showFetchProgress: false
+            showFetchProgress: false,
+            // Database browser state
+            queryInput: '',
+            queryResult: null,
+            queryError: null,
+            queryLoading: false
         });
     }
 
@@ -197,6 +202,108 @@ export class BtSettingsView extends BaseComponent {
                 white-space: nowrap;
             }
 
+            /* Database Browser Styles */
+            .query-section {
+                margin-top: 24px;
+            }
+
+            .query-input-wrapper {
+                position: relative;
+            }
+
+            .query-textarea {
+                width: 100%;
+                min-height: 120px;
+                padding: 12px;
+                background: var(--surface, #FFFFFF);
+                border: 1px solid var(--border, #D4C9B8);
+                border-radius: 6px;
+                font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+                font-size: 0.875rem;
+                color: var(--text, #2C2416);
+                resize: vertical;
+                box-sizing: border-box;
+            }
+
+            .query-textarea:focus {
+                outline: none;
+                border-color: var(--accent, #8B4513);
+            }
+
+            .query-textarea::placeholder {
+                color: var(--text-muted, #8B7E6A);
+            }
+
+            .query-result {
+                margin-top: 16px;
+            }
+
+            .query-meta {
+                font-size: 0.75rem;
+                color: var(--text-muted, #8B7E6A);
+                margin-bottom: 8px;
+            }
+
+            .query-error {
+                background: rgba(220, 38, 38, 0.1);
+                border: 1px solid rgba(220, 38, 38, 0.3);
+                border-radius: 6px;
+                padding: 12px;
+                color: #dc2626;
+                font-size: 0.875rem;
+                font-family: var(--font-mono, monospace);
+            }
+
+            .result-table-wrapper {
+                overflow-x: auto;
+                border: 1px solid var(--border, #D4C9B8);
+                border-radius: 6px;
+                background: var(--surface, #FFFFFF);
+            }
+
+            .result-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8125rem;
+            }
+
+            .result-table th,
+            .result-table td {
+                padding: 8px 12px;
+                text-align: left;
+                border-bottom: 1px solid var(--border-subtle, #E5DED2);
+                white-space: nowrap;
+            }
+
+            .result-table th {
+                background: var(--bg-secondary, #F5F0E8);
+                font-weight: 600;
+                color: var(--text, #2C2416);
+                position: sticky;
+                top: 0;
+            }
+
+            .result-table td {
+                font-family: var(--font-mono, monospace);
+                color: var(--text-secondary, #5C5244);
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .result-table tr:hover td {
+                background: var(--bg-secondary, #F5F0E8);
+            }
+
+            .result-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .null-value {
+                color: var(--text-muted, #8B7E6A);
+                font-style: italic;
+            }
+
             @media (max-width: 768px) {
                 .section-header {
                     flex-direction: column;
@@ -216,7 +323,7 @@ export class BtSettingsView extends BaseComponent {
     }
 
     template() {
-        const { loading, error, missingCovers, missingCount, showFetchProgress } = this.state;
+        const { loading, error, missingCovers, missingCount, showFetchProgress, queryResult, queryError, queryLoading } = this.state;
 
         if (loading) {
             return '<bt-loading text="Loading settings..."></bt-loading>';
@@ -277,6 +384,69 @@ export class BtSettingsView extends BaseComponent {
                     </div>
                 ` : ''}
             </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>Database Browser</h2>
+                </div>
+
+                <p class="description">
+                    Execute read-only SQL queries against the database for debugging and data exploration.
+                    Only SELECT queries are allowed.
+                </p>
+
+                <div class="query-section">
+                    <div class="query-input-wrapper">
+                        <textarea
+                            class="query-textarea"
+                            ref="queryTextarea"
+                            placeholder="SELECT * FROM library_view LIMIT 10"
+                        ></textarea>
+                    </div>
+
+                    <div class="actions" style="margin-top: 12px;">
+                        <button class="primary" ref="runQueryBtn" ${queryLoading ? 'disabled' : ''}>
+                            ${queryLoading ? 'Running...' : 'Run Query'}
+                        </button>
+                        <button ref="clearQueryBtn">Clear</button>
+                    </div>
+
+                    ${queryError ? `
+                        <div class="query-result">
+                            <div class="query-error">${this.escapeHtml(queryError)}</div>
+                        </div>
+                    ` : ''}
+
+                    ${queryResult ? `
+                        <div class="query-result">
+                            <div class="query-meta">
+                                ${queryResult.row_count} row${queryResult.row_count !== 1 ? 's' : ''} returned
+                                ${queryResult.truncated ? ' (limited to 1000 rows)' : ''}
+                            </div>
+                            ${queryResult.rows.length > 0 ? `
+                                <div class="result-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="result-table">
+                                        <thead>
+                                            <tr>
+                                                ${queryResult.columns.map(col => `<th>${this.escapeHtml(col)}</th>`).join('')}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${queryResult.rows.map(row => `
+                                                <tr>
+                                                    ${queryResult.columns.map(col => `
+                                                        <td>${row[col] === null ? '<span class="null-value">NULL</span>' : this.escapeHtml(String(row[col]))}</td>
+                                                    `).join('')}
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ` : '<p class="description">Query returned no results.</p>'}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
         `;
     }
 
@@ -311,10 +481,56 @@ export class BtSettingsView extends BaseComponent {
             // Start the fetch
             fetchProgress.startFetch();
         }
+
+        // Database browser handlers
+        const runQueryBtn = this.ref('runQueryBtn');
+        const clearQueryBtn = this.ref('clearQueryBtn');
+        const queryTextarea = this.ref('queryTextarea');
+
+        if (runQueryBtn && queryTextarea) {
+            runQueryBtn.addEventListener('click', () => this._executeQuery(queryTextarea.value));
+
+            // Allow Ctrl+Enter to run query
+            queryTextarea.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    this._executeQuery(queryTextarea.value);
+                }
+            });
+        }
+
+        if (clearQueryBtn && queryTextarea) {
+            clearQueryBtn.addEventListener('click', () => {
+                queryTextarea.value = '';
+                this.setState({ queryResult: null, queryError: null });
+            });
+        }
     }
 
     _startBatchFetch() {
         this.setState({ showFetchProgress: true });
+    }
+
+    async _executeQuery(query) {
+        if (!query || !query.trim()) {
+            this.setState({ queryError: 'Please enter a query', queryResult: null });
+            return;
+        }
+
+        this.setState({ queryLoading: true, queryError: null, queryResult: null });
+
+        try {
+            const result = await api.executeQuery(query.trim());
+            this.setState({ queryLoading: false, queryResult: result, queryError: null });
+        } catch (error) {
+            console.error('Query error:', error);
+            // Try to get error message from response
+            let errorMessage = 'Query failed';
+            if (error.message) {
+                errorMessage = error.message;
+            }
+            this.setState({ queryLoading: false, queryError: errorMessage, queryResult: null });
+        }
     }
 
     async onConnect() {

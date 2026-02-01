@@ -2,6 +2,10 @@
 
 A personal book tracking application designed for intentional, focused reading.
 
+## Current Project Status
+
+Overhauling from proof-of-concept functioning prototype to a quality, modern, polished application.
+
 ## Theory of the App
 
 ### The Problem
@@ -664,11 +668,4 @@ const [dashboard, stats] = await Promise.all([
 
 ---
 
-## Current Project Status
 
-Overhauling from proof-of-concept prototype to a quality, polished application. Focus areas:
-- Dashboard redesign with stats and visualizations
-- Enhanced pipeline/kanban interactions
-- Learning paths improvements
-- Mobile responsiveness
-- Performance optimization

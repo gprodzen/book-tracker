@@ -13,29 +13,175 @@ import '../components/shared/bt-book-cover.js';
 import '../components/shared/bt-status-badge.js';
 import '../components/shared/bt-progress-bar.js';
 
+// Column configuration
+const ALL_COLUMNS = [
+    { key: 'cover', label: '', sortable: false, hideable: false, className: 'col-cover' },
+    { key: 'title', label: 'Title', sortable: true, hideable: false, className: 'col-title' },
+    { key: 'author', label: 'Author', sortable: true, hideable: true, className: 'col-author' },
+    { key: 'status', label: 'Status', sortable: true, hideable: true, className: '' },
+    { key: 'progress', label: 'Progress', sortable: true, sortKey: 'progress_percent', hideable: true, className: 'col-progress' },
+    { key: 'rating', label: 'Rating', sortable: true, sortKey: 'my_rating', hideable: true, className: 'col-rating hide-mobile' },
+    { key: 'pages', label: 'Pages', sortable: true, sortKey: 'page_count', hideable: true, className: 'col-pages hide-mobile' },
+    { key: 'added', label: 'Added', sortable: true, sortKey: 'date_added', hideable: true, className: 'col-date hide-mobile' }
+];
+
+const DEFAULT_VISIBLE_COLUMNS = ['cover', 'title', 'author', 'status', 'progress', 'rating', 'pages', 'added'];
+const STORAGE_KEY_COLUMNS = 'library_visible_columns';
+
 export class BtLibraryView extends BaseComponent {
     constructor() {
         super();
+
+        // Load saved column visibility
+        const savedColumns = this._loadVisibleColumns();
+
         this.setState({
             loading: true,
             error: null,
             books: [],
             stats: null,
+            paths: [],
             pagination: {
                 page: 1,
                 perPage: 50,
                 total: 0,
                 pages: 1
-            }
+            },
+            visibleColumns: savedColumns,
+            showColumnSettings: false
         });
 
         this._debouncedSearch = this.debounce(this._handleSearch.bind(this), 300);
+    }
+
+    _loadVisibleColumns() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY_COLUMNS);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Failed to load column settings:', e);
+        }
+        return DEFAULT_VISIBLE_COLUMNS;
+    }
+
+    _saveVisibleColumns(columns) {
+        try {
+            localStorage.setItem(STORAGE_KEY_COLUMNS, JSON.stringify(columns));
+        } catch (e) {
+            console.error('Failed to save column settings:', e);
+        }
     }
 
     styles() {
         return `
             :host {
                 display: block;
+            }
+
+            /* ==========================================================================
+               Layout
+               ========================================================================== */
+            .library-layout {
+                display: grid;
+                grid-template-columns: 220px 1fr;
+                gap: 24px;
+            }
+
+            /* ==========================================================================
+               Filter Panel (Left Sidebar)
+               ========================================================================== */
+            .filter-panel {
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: 8px;
+                padding: 16px;
+                height: fit-content;
+                position: sticky;
+                top: 16px;
+            }
+
+            .filter-section {
+                margin-bottom: 20px;
+            }
+
+            .filter-section:last-child {
+                margin-bottom: 0;
+            }
+
+            .filter-section-title {
+                font-size: 0.6875rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--color-text-muted, #8B7E6A);
+                margin-bottom: 8px;
+            }
+
+            .filter-list {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .filter-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.15s ease-out;
+                border: none;
+                background: transparent;
+                width: 100%;
+                text-align: left;
+                font-family: inherit;
+                font-size: 0.875rem;
+                color: var(--color-text-secondary, #5C5244);
+            }
+
+            .filter-item:hover {
+                background: var(--color-bg-secondary, #F5F0E8);
+            }
+
+            .filter-item.active {
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-primary, #2C2416);
+                font-weight: 500;
+            }
+
+            .filter-item .count {
+                font-family: var(--font-mono, monospace);
+                font-size: 0.75rem;
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            .filter-item.active .count {
+                color: var(--color-accent, #8B4513);
+            }
+
+            .path-color {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 8px;
+                flex-shrink: 0;
+            }
+
+            .path-name {
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            /* ==========================================================================
+               Main Content
+               ========================================================================== */
+            .library-main {
+                min-width: 0;
             }
 
             /* ==========================================================================
@@ -46,6 +192,7 @@ export class BtLibraryView extends BaseComponent {
                 gap: 12px;
                 margin-bottom: 20px;
                 flex-wrap: wrap;
+                align-items: center;
             }
 
             .search-box {
@@ -67,41 +214,6 @@ export class BtLibraryView extends BaseComponent {
             .search-box input:focus {
                 outline: none;
                 border-color: var(--color-accent, #8B4513);
-            }
-
-            .filter-tabs {
-                display: flex;
-                gap: 4px;
-                background: var(--color-bg-secondary, #F5F0E8);
-                padding: 4px;
-                border-radius: 8px;
-            }
-
-            .filter-tab {
-                padding: 6px 16px;
-                border: none;
-                background: transparent;
-                border-radius: 6px;
-                color: var(--color-text-muted, #8B7E6A);
-                cursor: pointer;
-                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
-                font-size: 0.875rem;
-                transition: all 0.2s;
-            }
-
-            .filter-tab:hover {
-                color: var(--color-text-primary, #2C2416);
-            }
-
-            .filter-tab.active {
-                background: var(--color-bg-tertiary, #EDE6DB);
-                color: var(--color-text-primary, #2C2416);
-            }
-
-            .filter-tab .count {
-                margin-left: 6px;
-                color: var(--color-text-muted, #8B7E6A);
-                font-size: 0.75rem;
             }
 
             .btn {
@@ -133,6 +245,62 @@ export class BtLibraryView extends BaseComponent {
 
             .btn.primary:hover:not(:disabled) {
                 background: var(--color-accent-hover, #A0522D);
+            }
+
+            .btn-icon {
+                padding: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* ==========================================================================
+               Column Settings Dropdown
+               ========================================================================== */
+            .column-settings-wrapper {
+                position: relative;
+            }
+
+            .column-settings-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                margin-top: 4px;
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: 8px;
+                padding: 8px 0;
+                min-width: 180px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                z-index: 100;
+            }
+
+            .column-settings-dropdown.hidden {
+                display: none;
+            }
+
+            .column-option {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 0.875rem;
+                color: var(--color-text-secondary, #5C5244);
+                transition: background 0.1s;
+            }
+
+            .column-option:hover {
+                background: var(--color-bg-secondary, #F5F0E8);
+            }
+
+            .column-option input[type="checkbox"] {
+                cursor: pointer;
+            }
+
+            .column-option.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
             }
 
             /* ==========================================================================
@@ -330,25 +498,43 @@ export class BtLibraryView extends BaseComponent {
             /* ==========================================================================
                Mobile Responsiveness
                ========================================================================== */
+            @media (max-width: 900px) {
+                .library-layout {
+                    grid-template-columns: 1fr;
+                }
+
+                .filter-panel {
+                    position: static;
+                    display: flex;
+                    gap: 16px;
+                    overflow-x: auto;
+                    padding: 12px 16px;
+                    margin-bottom: 16px;
+                }
+
+                .filter-section {
+                    margin-bottom: 0;
+                    min-width: max-content;
+                }
+
+                .filter-section-title {
+                    margin-bottom: 6px;
+                }
+
+                .filter-list {
+                    flex-direction: row;
+                    gap: 4px;
+                }
+
+                .filter-item {
+                    padding: 6px 12px;
+                    white-space: nowrap;
+                }
+            }
+
             @media (max-width: 768px) {
                 .controls {
                     flex-direction: column;
-                }
-
-                .filter-tabs {
-                    overflow-x: auto;
-                    -webkit-overflow-scrolling: touch;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-
-                .filter-tabs::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .filter-tab {
-                    white-space: nowrap;
-                    padding: 8px 12px;
                 }
 
                 .table-scroll {
@@ -374,7 +560,7 @@ export class BtLibraryView extends BaseComponent {
     }
 
     template() {
-        const { loading, error, books, stats, pagination } = this.state;
+        const { loading, error, books, stats, paths, pagination, visibleColumns, showColumnSettings } = this.state;
         const filters = store.get('filters') || {};
 
         if (error) {
@@ -389,53 +575,99 @@ export class BtLibraryView extends BaseComponent {
         }
 
         return `
-            <div class="controls">
-                <div class="search-box">
-                    <input
-                        type="text"
-                        ref="searchInput"
-                        placeholder="Search books by title or author..."
-                        value="${this.escapeHtml(filters.search || '')}"
-                    >
-                </div>
-                <div class="filter-tabs">
-                    ${this._renderFilterTabs(stats, filters.status)}
-                </div>
-                <button ref="enrichBtn" class="btn primary">Enhance Covers</button>
-            </div>
+            <div class="library-layout">
+                <aside class="filter-panel">
+                    <div class="filter-section">
+                        <div class="filter-section-title">Status</div>
+                        <div class="filter-list">
+                            ${this._renderStatusFilters(stats, filters.status)}
+                        </div>
+                    </div>
 
-            <div ref="booksContainer">
-                ${loading ? '<bt-loading text="Loading books..."></bt-loading>' : this._renderBooks(books, filters)}
-            </div>
+                    ${paths && paths.length > 0 ? `
+                        <div class="filter-section">
+                            <div class="filter-section-title">Learning Paths</div>
+                            <div class="filter-list">
+                                ${paths.map(path => `
+                                    <button class="filter-item ${filters.path == path.id ? 'active' : ''}" data-path-id="${path.id}">
+                                        <span class="path-color" style="background: ${path.color || '#8B4513'}"></span>
+                                        <span class="path-name">${this.escapeHtml(path.name)}</span>
+                                        <span class="count">${path.total_books || 0}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </aside>
 
-            ${!loading && pagination.pages > 1 ? `
-                <div class="pagination">
-                    <button ref="prevBtn" class="btn" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>
-                    <span class="page-info">Page ${pagination.page} of ${pagination.pages}</span>
-                    <button ref="nextBtn" class="btn" ${pagination.page >= pagination.pages ? 'disabled' : ''}>Next</button>
-                </div>
-            ` : ''}
+                <main class="library-main">
+                    <div class="controls">
+                        <div class="search-box">
+                            <input
+                                type="text"
+                                ref="searchInput"
+                                placeholder="Search books by title or author..."
+                                value="${this.escapeHtml(filters.search || '')}"
+                            >
+                        </div>
+                        <div class="column-settings-wrapper">
+                            <button ref="columnSettingsBtn" class="btn btn-icon" title="Column settings">
+                                &#9881;
+                            </button>
+                            <div class="column-settings-dropdown ${showColumnSettings ? '' : 'hidden'}" ref="columnDropdown">
+                                ${ALL_COLUMNS.filter(col => col.hideable).map(col => `
+                                    <label class="column-option ${col.hideable ? '' : 'disabled'}">
+                                        <input
+                                            type="checkbox"
+                                            data-column="${col.key}"
+                                            ${visibleColumns.includes(col.key) ? 'checked' : ''}
+                                            ${col.hideable ? '' : 'disabled'}
+                                        >
+                                        ${col.label}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ref="booksContainer">
+                        ${loading ? '<bt-loading text="Loading books..."></bt-loading>' : this._renderBooks(books, filters, visibleColumns)}
+                    </div>
+
+                    ${!loading && pagination.pages > 1 ? `
+                        <div class="pagination">
+                            <button ref="prevBtn" class="btn" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>
+                            <span class="page-info">Page ${pagination.page} of ${pagination.pages}</span>
+                            <button ref="nextBtn" class="btn" ${pagination.page >= pagination.pages ? 'disabled' : ''}>Next</button>
+                        </div>
+                    ` : ''}
+                </main>
+            </div>
         `;
     }
 
-    _renderFilterTabs(stats, currentStatus) {
+    _renderStatusFilters(stats, currentStatus) {
         const statuses = [
-            { key: '', label: 'All', count: stats?.total_books || 0 },
-            { key: 'finished', label: 'Finished', count: stats?.by_status?.finished || 0 },
+            { key: '', label: 'All Books', count: stats?.total_books || 0 },
             { key: 'reading', label: 'Reading', count: stats?.by_status?.reading || 0 },
             { key: 'queued', label: 'Queued', count: stats?.by_status?.queued || 0 },
-            { key: 'want_to_read', label: 'Want to Read', count: stats?.by_status?.want_to_read || 0 }
+            { key: 'want_to_read', label: 'Want to Read', count: stats?.by_status?.want_to_read || 0 },
+            { key: 'finished', label: 'Finished', count: stats?.by_status?.finished || 0 },
+            { key: 'abandoned', label: 'Abandoned', count: stats?.by_status?.abandoned || 0 }
         ];
 
         return statuses.map(s => `
             <button
-                class="filter-tab ${currentStatus === s.key ? 'active' : ''}"
+                class="filter-item ${currentStatus === s.key ? 'active' : ''}"
                 data-status="${s.key}"
-            >${s.label}<span class="count">${s.count}</span></button>
+            >
+                <span>${s.label}</span>
+                <span class="count">${s.count}</span>
+            </button>
         `).join('');
     }
 
-    _renderBooks(books, filters) {
+    _renderBooks(books, filters, visibleColumns) {
         if (books.length === 0) {
             return `
                 <bt-empty-state
@@ -448,39 +680,40 @@ export class BtLibraryView extends BaseComponent {
         const currentSort = filters.sort || 'date_added';
         const currentOrder = filters.order || 'desc';
 
+        // Get visible columns configuration
+        const columns = ALL_COLUMNS.filter(col => visibleColumns.includes(col.key));
+
         return `
             <div class="table-container">
                 <div class="table-scroll">
                     <table class="books-table">
                         <thead>
                             <tr>
-                                <th class="col-cover"></th>
-                                <th class="sortable ${currentSort === 'title' ? 'sorted' : ''}" data-sort="title">
-                                    Title
-                                    <span class="sort-icon">${currentSort === 'title' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;'}</span>
-                                </th>
-                                <th class="sortable ${currentSort === 'author' ? 'sorted' : ''}" data-sort="author">
-                                    Author
-                                    <span class="sort-icon">${currentSort === 'author' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;'}</span>
-                                </th>
-                                <th>Status</th>
-                                <th>Progress</th>
-                                <th class="sortable hide-mobile ${currentSort === 'my_rating' ? 'sorted' : ''}" data-sort="my_rating">
-                                    Rating
-                                    <span class="sort-icon">${currentSort === 'my_rating' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
-                                </th>
-                                <th class="sortable hide-mobile ${currentSort === 'page_count' ? 'sorted' : ''}" data-sort="page_count">
-                                    Pages
-                                    <span class="sort-icon">${currentSort === 'page_count' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
-                                </th>
-                                <th class="sortable hide-mobile ${currentSort === 'date_added' ? 'sorted' : ''}" data-sort="date_added">
-                                    Added
-                                    <span class="sort-icon">${currentSort === 'date_added' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
-                                </th>
+                                ${columns.map(col => {
+                                    const sortKey = col.sortKey || col.key;
+                                    const isSorted = currentSort === sortKey;
+                                    const sortClass = col.sortable ? 'sortable' : '';
+                                    const sortedClass = isSorted ? 'sorted' : '';
+
+                                    if (!col.label) {
+                                        return `<th class="${col.className}"></th>`;
+                                    }
+
+                                    if (!col.sortable) {
+                                        return `<th class="${col.className}">${col.label}</th>`;
+                                    }
+
+                                    return `
+                                        <th class="${sortClass} ${sortedClass} ${col.className}" data-sort="${sortKey}">
+                                            ${col.label}
+                                            <span class="sort-icon">${isSorted ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;'}</span>
+                                        </th>
+                                    `;
+                                }).join('')}
                             </tr>
                         </thead>
                         <tbody>
-                            ${books.map(book => this._renderBookRow(book)).join('')}
+                            ${books.map(book => this._renderBookRow(book, visibleColumns)).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -488,14 +721,14 @@ export class BtLibraryView extends BaseComponent {
         `;
     }
 
-    _renderBookRow(book) {
+    _renderBookRow(book, visibleColumns) {
         const progress = book.progress_percent || 0;
         const rating = book.my_rating ? this._renderStars(book.my_rating) : '<span class="no-rating">&#8211;</span>';
         const pages = book.page_count || '&#8211;';
         const dateAdded = book.date_added ? this._formatDate(book.date_added) : '&#8211;';
 
-        return `
-            <tr data-book-id="${book.book_id}">
+        const cellRenderers = {
+            cover: `
                 <td class="col-cover">
                     <img
                         class="cover-thumb"
@@ -504,22 +737,36 @@ export class BtLibraryView extends BaseComponent {
                         onerror="this.style.visibility='hidden'"
                     >
                 </td>
+            `,
+            title: `
                 <td class="col-title">
                     <span class="title-text">${this.escapeHtml(book.title)}</span>
                 </td>
+            `,
+            author: `
                 <td class="col-author">
                     <span class="author-text">${this.escapeHtml(book.author || '')}</span>
                 </td>
+            `,
+            status: `
                 <td>
                     <bt-status-badge status="${book.status}"></bt-status-badge>
                 </td>
+            `,
+            progress: `
                 <td class="col-progress">
                     <div class="progress-text">${progress}%</div>
                     <div class="progress-bar"><div class="fill" style="width: ${progress}%"></div></div>
                 </td>
-                <td class="col-rating hide-mobile">${rating}</td>
-                <td class="col-pages hide-mobile">${pages}</td>
-                <td class="col-date hide-mobile">${dateAdded}</td>
+            `,
+            rating: `<td class="col-rating hide-mobile">${rating}</td>`,
+            pages: `<td class="col-pages hide-mobile">${pages}</td>`,
+            added: `<td class="col-date hide-mobile">${dateAdded}</td>`
+        };
+
+        return `
+            <tr data-book-id="${book.book_id}">
+                ${visibleColumns.map(col => cellRenderers[col] || '').join('')}
             </tr>
         `;
     }
@@ -554,12 +801,65 @@ export class BtLibraryView extends BaseComponent {
             });
         }
 
-        // Filter tabs
-        this.$$('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                this._handleFilterChange(tab.dataset.status);
+        // Status filters (sidebar)
+        this.$$('.filter-item[data-status]').forEach(item => {
+            item.addEventListener('click', () => {
+                this._handleFilterChange(item.dataset.status);
             });
         });
+
+        // Path filters (sidebar)
+        this.$$('.filter-item[data-path-id]').forEach(item => {
+            item.addEventListener('click', () => {
+                this._handlePathFilter(item.dataset.pathId);
+            });
+        });
+
+        // Column settings button and dropdown
+        const columnSettingsBtn = this.ref('columnSettingsBtn');
+        const columnDropdown = this.ref('columnDropdown');
+
+        if (columnSettingsBtn && columnDropdown) {
+            columnSettingsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setState({ showColumnSettings: !this.state.showColumnSettings });
+            });
+
+            // Column checkboxes
+            columnDropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const columnKey = checkbox.dataset.column;
+                    let newColumns = [...this.state.visibleColumns];
+
+                    if (checkbox.checked) {
+                        if (!newColumns.includes(columnKey)) {
+                            // Insert in correct order based on ALL_COLUMNS
+                            const allKeys = ALL_COLUMNS.map(c => c.key);
+                            const insertIndex = allKeys.indexOf(columnKey);
+                            let insertPosition = 0;
+                            for (let i = 0; i < newColumns.length; i++) {
+                                if (allKeys.indexOf(newColumns[i]) < insertIndex) {
+                                    insertPosition = i + 1;
+                                }
+                            }
+                            newColumns.splice(insertPosition, 0, columnKey);
+                        }
+                    } else {
+                        newColumns = newColumns.filter(k => k !== columnKey);
+                    }
+
+                    this._saveVisibleColumns(newColumns);
+                    this.setState({ visibleColumns: newColumns });
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (this.state.showColumnSettings && !columnDropdown.contains(e.target) && e.target !== columnSettingsBtn) {
+                    this.setState({ showColumnSettings: false });
+                }
+            });
+        }
 
         // Sortable column headers
         this.$$('.books-table th.sortable').forEach(th => {
@@ -588,21 +888,18 @@ export class BtLibraryView extends BaseComponent {
         if (nextBtn) {
             nextBtn.addEventListener('click', () => this._handlePageChange(1));
         }
-
-        // Enrich button
-        const enrichBtn = this.ref('enrichBtn');
-        if (enrichBtn) {
-            enrichBtn.addEventListener('click', () => this._handleEnrich());
-        }
     }
 
     async onConnect() {
-        // Load stats first
+        // Load stats and paths in parallel
         try {
-            const stats = await api.getStats();
-            this.setState({ stats });
+            const [stats, paths] = await Promise.all([
+                api.getStats(),
+                api.getPaths()
+            ]);
+            this.setState({ stats, paths });
         } catch (e) {
-            console.error('Failed to load stats:', e);
+            console.error('Failed to load stats/paths:', e);
         }
 
         // Load books based on URL params
@@ -633,6 +930,7 @@ export class BtLibraryView extends BaseComponent {
                 sort: filters.sort,
                 order: filters.order,
                 status: filters.status,
+                path: filters.path,
                 search: filters.search
             });
 
@@ -661,7 +959,14 @@ export class BtLibraryView extends BaseComponent {
     }
 
     _handleFilterChange(status) {
-        router.updateParams({ status, page: 1 });
+        router.updateParams({ status, path: '', page: 1 });
+    }
+
+    _handlePathFilter(pathId) {
+        const filters = store.get('filters') || {};
+        // Toggle path filter
+        const newPathId = filters.path == pathId ? '' : pathId;
+        router.updateParams({ path: newPathId, status: '', page: 1 });
     }
 
     _handleColumnSort(sortField) {
@@ -686,29 +991,6 @@ export class BtLibraryView extends BaseComponent {
         const newPage = pagination.page + delta;
         if (newPage >= 1 && newPage <= pagination.pages) {
             router.updateParams({ page: newPage });
-        }
-    }
-
-    async _handleEnrich() {
-        const enrichBtn = this.ref('enrichBtn');
-        if (enrichBtn) {
-            enrichBtn.disabled = true;
-            enrichBtn.textContent = 'Enhancing...';
-        }
-
-        try {
-            const result = await api.enrichBooks();
-            const message = `Enhanced ${result.enriched} covers. ${result.failed} not found. ${result.remaining} remaining.`;
-            this.emit('toast', { message, type: 'success' });
-            await this._loadBooks();
-        } catch (error) {
-            this.emit('toast', { message: 'Error enhancing books', type: 'error' });
-            console.error('Enrich error:', error);
-        } finally {
-            if (enrichBtn) {
-                enrichBtn.disabled = false;
-                enrichBtn.textContent = 'Enhance Covers';
-            }
         }
     }
 

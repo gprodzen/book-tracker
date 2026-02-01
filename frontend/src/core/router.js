@@ -194,6 +194,7 @@ class Router {
         if (route === 'library') {
             store.update({
                 'filters.status': params.status || '',
+                'filters.path': params.path || '',
                 'filters.search': params.search || '',
                 'filters.sort': params.sort || 'date_added',
                 'filters.order': params.order || 'desc',

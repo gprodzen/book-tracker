@@ -8,11 +8,13 @@ import { api } from '../../services/api-client.js';
 export class BtCheckinModal extends BaseComponent {
     constructor() {
         super();
+        // Local input values - NOT in state to avoid re-render on keystroke
+        this._pagesRead = '';
+        this._notes = '';
+        this._markFinished = false;
+
         this.setState({
             book: null,
-            pagesRead: '',
-            notes: '',
-            markFinished: false,
             saving: false,
             error: null
         });
@@ -189,7 +191,7 @@ export class BtCheckinModal extends BaseComponent {
     }
 
     template() {
-        const { book, pagesRead, notes, markFinished, saving, error } = this.state;
+        const { book, saving, error } = this.state;
 
         if (!book) {
             return '<div>Loading...</div>';
@@ -197,12 +199,7 @@ export class BtCheckinModal extends BaseComponent {
 
         const currentPage = book.current_page || 0;
         const pageCount = book.page_count || 0;
-        const pagesReadNum = parseInt(pagesRead) || 0;
-        const newPage = Math.min(currentPage + pagesReadNum, pageCount || currentPage + pagesReadNum);
-        const newProgress = pageCount ? Math.min(100, Math.round((newPage / pageCount) * 100)) : 0;
         const currentProgress = book.progress_percent || 0;
-
-        const willFinish = pageCount && newPage >= pageCount;
 
         return `
             <div class="checkin-form">
@@ -222,7 +219,7 @@ export class BtCheckinModal extends BaseComponent {
                             type="number"
                             id="pages-read"
                             ref="pagesInput"
-                            value="${pagesRead}"
+                            value="${this._pagesRead}"
                             min="1"
                             max="${pageCount ? pageCount - currentPage : 9999}"
                             placeholder="0"
@@ -232,15 +229,10 @@ export class BtCheckinModal extends BaseComponent {
                     </div>
                 </div>
 
-                ${pagesReadNum > 0 ? `
-                    <div class="preview">
-                        <div class="preview-label">After this check-in:</div>
-                        <div class="preview-value">
-                            Page ${newPage}${pageCount ? ` of ${pageCount}` : ''} (${newProgress}%)
-                            ${willFinish ? ' - Complete!' : ''}
-                        </div>
-                    </div>
-                ` : ''}
+                <div class="preview" ref="previewSection" style="display: none;">
+                    <div class="preview-label">After this check-in:</div>
+                    <div class="preview-value" ref="previewValue"></div>
+                </div>
 
                 <div class="form-group">
                     <label for="notes">Notes (optional)</label>
@@ -248,21 +240,19 @@ export class BtCheckinModal extends BaseComponent {
                         id="notes"
                         ref="notesInput"
                         placeholder="What did you learn or find interesting?"
-                    >${notes}</textarea>
+                    >${this._notes}</textarea>
                 </div>
 
-                ${!willFinish && pageCount ? `
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="mark-finished" ref="finishedCheckbox" ${markFinished ? 'checked' : ''}>
-                        <label for="mark-finished">Mark book as finished</label>
-                    </div>
-                ` : ''}
+                <div class="checkbox-group" ref="finishedCheckboxGroup" style="${pageCount ? '' : 'display: none;'}">
+                    <input type="checkbox" id="mark-finished" ref="finishedCheckbox" ${this._markFinished ? 'checked' : ''}>
+                    <label for="mark-finished">Mark book as finished</label>
+                </div>
 
                 <div class="form-actions">
                     <button type="button" class="secondary" ref="cancelBtn" ${saving ? 'disabled' : ''}>
                         Cancel
                     </button>
-                    <button type="button" class="primary" ref="saveBtn" ${saving || !pagesReadNum ? 'disabled' : ''}>
+                    <button type="button" class="primary" ref="saveBtn" disabled>
                         ${saving ? 'Saving...' : 'Log Progress'}
                     </button>
                 </div>
@@ -278,20 +268,27 @@ export class BtCheckinModal extends BaseComponent {
         const saveBtn = this.ref('saveBtn');
 
         if (pagesInput) {
+            // Use local variable + direct DOM updates instead of setState to avoid re-render
             pagesInput.addEventListener('input', () => {
-                this.setState({ pagesRead: pagesInput.value });
+                this._pagesRead = pagesInput.value;
+                this._updatePreview();
+                this._updateSaveButton();
             });
+            // Initialize preview on mount if there's already a value
+            this._updatePreview();
+            this._updateSaveButton();
         }
 
         if (notesInput) {
+            // Store notes locally, no need to re-render
             notesInput.addEventListener('input', () => {
-                this.setState({ notes: notesInput.value });
+                this._notes = notesInput.value;
             });
         }
 
         if (finishedCheckbox) {
             finishedCheckbox.addEventListener('change', () => {
-                this.setState({ markFinished: finishedCheckbox.checked });
+                this._markFinished = finishedCheckbox.checked;
             });
         }
 
@@ -306,9 +303,62 @@ export class BtCheckinModal extends BaseComponent {
         }
     }
 
+    /**
+     * Update the preview section without full re-render
+     */
+    _updatePreview() {
+        const { book } = this.state;
+        if (!book) return;
+
+        const currentPage = book.current_page || 0;
+        const pageCount = book.page_count || 0;
+        const pagesReadNum = parseInt(this._pagesRead) || 0;
+
+        const previewSection = this.ref('previewSection');
+        const previewValue = this.ref('previewValue');
+        const finishedCheckboxGroup = this.ref('finishedCheckboxGroup');
+
+        if (!previewSection || !previewValue) return;
+
+        if (pagesReadNum > 0) {
+            const newPage = Math.min(currentPage + pagesReadNum, pageCount || currentPage + pagesReadNum);
+            const newProgress = pageCount ? Math.min(100, Math.round((newPage / pageCount) * 100)) : 0;
+            const willFinish = pageCount && newPage >= pageCount;
+
+            previewSection.style.display = '';
+            previewValue.textContent = `Page ${newPage}${pageCount ? ` of ${pageCount}` : ''} (${newProgress}%)${willFinish ? ' - Complete!' : ''}`;
+
+            // Hide checkbox if book will be finished
+            if (finishedCheckboxGroup) {
+                finishedCheckboxGroup.style.display = willFinish ? 'none' : '';
+            }
+        } else {
+            previewSection.style.display = 'none';
+            if (finishedCheckboxGroup && pageCount) {
+                finishedCheckboxGroup.style.display = '';
+            }
+        }
+    }
+
+    /**
+     * Update save button enabled state without full re-render
+     */
+    _updateSaveButton() {
+        const saveBtn = this.ref('saveBtn');
+        if (!saveBtn) return;
+
+        const pagesReadNum = parseInt(this._pagesRead) || 0;
+        const { saving } = this.state;
+
+        saveBtn.disabled = saving || !pagesReadNum;
+    }
+
     async _handleSave() {
-        const { book, pagesRead, notes, markFinished } = this.state;
-        const pagesReadNum = parseInt(pagesRead) || 0;
+        const { book } = this.state;
+        // Read values from local variables (not state)
+        const pagesReadNum = parseInt(this._pagesRead) || 0;
+        const notes = this._notes;
+        const markFinished = this._markFinished;
 
         if (pagesReadNum <= 0) {
             this.setState({ error: 'Please enter pages read' });
@@ -341,7 +391,11 @@ export class BtCheckinModal extends BaseComponent {
      * Set the book data
      */
     set book(book) {
-        this.setState({ book });
+        // Reset local input values when book changes
+        this._pagesRead = '';
+        this._notes = '';
+        this._markFinished = false;
+        this.setState({ book, saving: false, error: null });
     }
 }
 

@@ -217,6 +217,7 @@ class ApiClient {
         });
 
         if (params.status) query.append('status', params.status);
+        if (params.path) query.append('path', params.path);
         if (params.search) query.append('search', params.search);
 
         const endpoint = `/books?${query}`;
@@ -401,6 +402,14 @@ class ApiClient {
         const result = await this.patch('/settings', data);
         await cacheManager.delete('settings');
         return result;
+    }
+
+    // ==========================================
+    // Admin/Debug API
+    // ==========================================
+
+    async executeQuery(query) {
+        return this.post('/admin/query', { query });
     }
 
     // ==========================================

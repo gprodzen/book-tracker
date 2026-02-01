@@ -344,7 +344,7 @@ class BookTrackerApp {
             this._modal.close();
             setTimeout(() => {
                 this._showAddBookModal(e.detail.sourceBookId);
-            }, 100);
+            }, 200);  // Must exceed modal close animation (150ms)
         });
 
         detail.addEventListener('show-book', (e) => {

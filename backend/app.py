@@ -211,6 +211,7 @@ def get_books():
 
     status = request.args.get('status')
     search = request.args.get('search', '')
+    path_id = request.args.get('path')
     sort_by = request.args.get('sort', 'date_added')
     sort_order = request.args.get('order', 'desc')
     page = int(request.args.get('page', 1))
@@ -223,15 +224,41 @@ def get_books():
         query += ' AND status = ?'
         params.append(status)
 
+    if path_id:
+        query += ' AND user_book_id IN (SELECT user_book_id FROM learning_path_books WHERE learning_path_id = ?)'
+        params.append(path_id)
+
     if search:
         query += ' AND (title LIKE ? OR author LIKE ?)'
         search_term = f'%{search}%'
         params.extend([search_term, search_term])
 
-    valid_sorts = ['date_added', 'finished_reading_at', 'title', 'author', 'my_rating', 'page_count', 'year_published']
+    valid_sorts = ['date_added', 'finished_reading_at', 'title', 'author', 'my_rating', 'page_count', 'year_published', 'progress_percent', 'status']
     if sort_by in valid_sorts:
         order = 'DESC' if sort_order.lower() == 'desc' else 'ASC'
-        query += f' ORDER BY {sort_by} IS NULL, {sort_by} {order}'
+        if sort_by == 'author':
+            # Sort by last name: extract last word of author name
+            # "John Smith" -> sort by "Smith"
+            # "J.R.R. Tolkien" -> sort by "Tolkien"
+            query += f''' ORDER BY
+                CASE
+                    WHEN author IS NULL THEN 1
+                    ELSE 0
+                END,
+                LOWER(SUBSTR(author, INSTR(author || ' ', ' ') + 1)) {order}'''
+        elif sort_by == 'status':
+            # Custom status ordering: reading, queued, want_to_read, finished, abandoned
+            query += f''' ORDER BY
+                CASE status
+                    WHEN 'reading' THEN 1
+                    WHEN 'queued' THEN 2
+                    WHEN 'want_to_read' THEN 3
+                    WHEN 'finished' THEN 4
+                    WHEN 'abandoned' THEN 5
+                    ELSE 6
+                END {order}'''
+        else:
+            query += f' ORDER BY {sort_by} IS NULL, {sort_by} {order}'
 
     offset = (page - 1) * per_page
     query += ' LIMIT ? OFFSET ?'
@@ -251,6 +278,9 @@ def get_books():
     if status:
         count_query += ' AND status = ?'
         count_params.append(status)
+    if path_id:
+        count_query += ' AND user_book_id IN (SELECT user_book_id FROM learning_path_books WHERE learning_path_id = ?)'
+        count_params.append(path_id)
     if search:
         count_query += ' AND (title LIKE ? OR author LIKE ?)'
         count_params.extend([f'%{search}%', f'%{search}%'])
@@ -1583,6 +1613,52 @@ def get_pipeline():
         'pipeline': pipeline,
         'wip_limit': wip_limit,
     })
+
+
+# --- Admin/Debug API ---
+
+@app.route('/api/admin/query', methods=['POST'])
+@require_auth
+def execute_query():
+    """Execute a read-only SQL query (admin debugging tool)."""
+    db = get_db()
+    data = request.get_json()
+    query = data.get('query', '').strip()
+
+    if not query:
+        return jsonify({'error': 'Query is required'}), 400
+
+    # Security: Only allow SELECT queries
+    if not query.upper().startswith('SELECT'):
+        return jsonify({'error': 'Only SELECT queries are allowed'}), 400
+
+    # Block dangerous keywords
+    dangerous_keywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'TRUNCATE', 'REPLACE', 'ATTACH', 'DETACH']
+    query_upper = query.upper()
+    for keyword in dangerous_keywords:
+        # Check for keyword as whole word (not part of column name)
+        if f' {keyword} ' in f' {query_upper} ' or query_upper.startswith(f'{keyword} '):
+            return jsonify({'error': f'{keyword} statements are not allowed'}), 400
+
+    try:
+        cursor = db.execute(query)
+        columns = [description[0] for description in cursor.description] if cursor.description else []
+        rows = cursor.fetchall()
+
+        # Limit to 1000 rows for safety
+        rows = rows[:1000]
+        result_rows = [dict(zip(columns, row)) for row in rows]
+
+        return jsonify({
+            'columns': columns,
+            'rows': result_rows,
+            'row_count': len(result_rows),
+            'truncated': len(rows) == 1000
+        })
+    except sqlite3.Error as e:
+        return jsonify({'error': f'SQL error: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Query failed: {str(e)}'}), 500
 
 
 # --- Export API ---
