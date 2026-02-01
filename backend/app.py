@@ -1188,6 +1188,14 @@ def get_dashboard():
             isbn = book.get('isbn13') or book.get('isbn')
             if isbn:
                 book['cover_image_url'] = get_open_library_cover_url(isbn=isbn, size='L')
+        # Add path associations for queued books
+        cursor2 = db.execute('''
+            SELECT lp.id, lp.name, lp.color
+            FROM learning_paths lp
+            JOIN learning_path_books lpb ON lp.id = lpb.learning_path_id
+            WHERE lpb.user_book_id = ?
+        ''', (book['user_book_id'],))
+        book['paths'] = [dict_from_row(row) for row in cursor2.fetchall()]
 
     cursor = db.execute('''
         SELECT
