@@ -2,50 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#58a6ff">
+    <meta name="description" content="Track your reading progress, manage your library, and organize learning paths">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Book Tracker">
+
     <title>Book Tracker</title>
-    <link rel="stylesheet" href="styles.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='24'>📚</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='100'>📚</text></svg>">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
+
+    <!-- Preload critical resources -->
+    <link rel="modulepreload" href="src/core/base-component.js">
+    <link rel="modulepreload" href="src/core/store.js">
+    <link rel="modulepreload" href="src/core/router.js">
+    <link rel="modulepreload" href="src/core/events.js">
+
+    <style>
+        /* Critical inline styles for initial load */
+        .initial-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text-muted);
+        }
+
+        .initial-loading .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 16px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide FAB initially */
+        bt-fab {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Navigation -->
-        <nav>
-            <a href="#dashboard" class="nav-brand">Book Tracker</a>
-            <div class="nav-links">
-                <a href="#dashboard" class="nav-link active" data-route="dashboard">Dashboard</a>
-                <a href="#pipeline" class="nav-link" data-route="pipeline">Pipeline</a>
-                <a href="#paths" class="nav-link" data-route="paths">Paths</a>
-                <a href="#library" class="nav-link" data-route="library">Library</a>
-            </div>
-        </nav>
+    <!-- App Shell -->
+    <bt-app-shell>
+        <!-- Navigation (in header slot) -->
+        <bt-nav slot="header"></bt-nav>
 
         <!-- View Container -->
         <div id="view-container">
-            <div class="loading">Loading...</div>
-        </div>
-    </div>
-
-    <!-- FAB (Floating Action Button) for quick add -->
-    <button class="fab" id="fab-add-book" title="Add Book">+</button>
-
-    <!-- Book Detail / Edit Modal -->
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="modal-title"></h2>
-                <button class="modal-close" id="modal-close">&times;</button>
+            <div class="initial-loading">
+                <div class="spinner"></div>
+                <span>Loading Book Tracker...</span>
             </div>
-            <div class="modal-body" id="modal-body"></div>
         </div>
-    </div>
+    </bt-app-shell>
 
-    <!-- Load Views -->
-    <script src="views/dashboard.js"></script>
-    <script src="views/pipeline.js"></script>
-    <script src="views/paths.js"></script>
-    <script src="views/library.js"></script>
+    <!-- Floating Action Button -->
+    <bt-fab icon="+" aria-label="Add Book" title="Add Book"></bt-fab>
 
-    <!-- Load Main App -->
-    <script src="app.js"></script>
+    <!-- Modal Container -->
+    <bt-modal></bt-modal>
+
+    <!-- Toast Notifications -->
+    <bt-toast></bt-toast>
+
+    <!-- Main Application Script -->
+    <script type="module" src="src/app.js"></script>
+
+    <!-- No-JS Fallback -->
+    <noscript>
+        <div style="text-align: center; padding: 40px; background: var(--bg); color: var(--text);">
+            <h1>JavaScript Required</h1>
+            <p>Book Tracker requires JavaScript to run. Please enable JavaScript in your browser settings.</p>
+        </div>
+    </noscript>
 </body>
 </html>

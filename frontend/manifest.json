@@ -1,0 +1,57 @@
+{
+  "name": "Book Tracker",
+  "short_name": "BookTracker",
+  "description": "Track your reading progress, manage your library, and organize learning paths",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#58a6ff",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' rx='12' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='40' fill='%2358a6ff'>📚</text></svg>",
+      "sizes": "72x72",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='100' fill='%2358a6ff'>📚</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='64' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='280' fill='%2358a6ff'>📚</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "books", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your reading dashboard",
+      "url": "/#dashboard",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='16' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='50'>📊</text></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Add Book",
+      "short_name": "Add",
+      "description": "Add a new book to your library",
+      "url": "/#library?action=add",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='16' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='50'>➕</text></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Pipeline",
+      "short_name": "Pipeline",
+      "description": "View your reading pipeline",
+      "url": "/#pipeline",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='16' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='50'>📋</text></svg>", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
