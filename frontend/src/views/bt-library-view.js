@@ -1,5 +1,5 @@
 /**
- * bt-library-view - Library view with filters and URL state persistence
+ * bt-library-view - Library view with table interface and URL state persistence
  */
 
 import { BaseComponent, defineComponent } from '../core/base-component.js';
@@ -9,7 +9,9 @@ import { router } from '../core/router.js';
 import { events, EVENT_NAMES } from '../core/events.js';
 import '../components/shared/bt-loading.js';
 import '../components/shared/bt-empty-state.js';
-import '../components/shared/bt-book-card.js';
+import '../components/shared/bt-book-cover.js';
+import '../components/shared/bt-status-badge.js';
+import '../components/shared/bt-progress-bar.js';
 
 export class BtLibraryView extends BaseComponent {
     constructor() {
@@ -36,6 +38,9 @@ export class BtLibraryView extends BaseComponent {
                 display: block;
             }
 
+            /* ==========================================================================
+               Controls
+               ========================================================================== */
             .controls {
                 display: flex;
                 gap: 12px;
@@ -51,22 +56,23 @@ export class BtLibraryView extends BaseComponent {
             .search-box input {
                 width: 100%;
                 padding: 8px 12px;
-                background: var(--bg-secondary, #F5F0E8);
-                border: 1px solid var(--border, #D4C9B8);
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #2C2416);
+                color: var(--color-text-primary, #2C2416);
+                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
                 font-size: 0.875rem;
             }
 
             .search-box input:focus {
                 outline: none;
-                border-color: var(--accent, #8B4513);
+                border-color: var(--color-accent, #8B4513);
             }
 
             .filter-tabs {
                 display: flex;
                 gap: 4px;
-                background: var(--bg-secondary, #F5F0E8);
+                background: var(--color-bg-secondary, #F5F0E8);
                 padding: 4px;
                 border-radius: 8px;
             }
@@ -76,91 +82,254 @@ export class BtLibraryView extends BaseComponent {
                 border: none;
                 background: transparent;
                 border-radius: 6px;
-                color: var(--text-muted, #8B7E6A);
+                color: var(--color-text-muted, #8B7E6A);
                 cursor: pointer;
+                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
                 font-size: 0.875rem;
                 transition: all 0.2s;
             }
 
             .filter-tab:hover {
-                color: var(--text, #2C2416);
+                color: var(--color-text-primary, #2C2416);
             }
 
             .filter-tab.active {
-                background: var(--bg-tertiary, #EDE6DB);
-                color: var(--text, #2C2416);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-primary, #2C2416);
             }
 
             .filter-tab .count {
                 margin-left: 6px;
-                color: var(--text-muted, #8B7E6A);
+                color: var(--color-text-muted, #8B7E6A);
                 font-size: 0.75rem;
             }
 
-            select {
-                padding: 8px 12px;
-                background: var(--bg-secondary, #F5F0E8);
-                border: 1px solid var(--border, #D4C9B8);
-                border-radius: 6px;
-                color: var(--text, #2C2416);
-                font-size: 0.875rem;
-                cursor: pointer;
-            }
-
-            select:focus {
-                outline: none;
-                border-color: var(--accent, #8B4513);
-            }
-
-            button {
-                background: var(--bg-secondary, #F5F0E8);
-                border: 1px solid var(--border, #D4C9B8);
-                color: var(--text, #2C2416);
+            .btn {
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border, #D4C9B8);
+                color: var(--color-text-primary, #2C2416);
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
+                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
                 font-size: 0.875rem;
+                transition: all 0.15s ease-out;
             }
 
-            button:hover:not(:disabled) {
-                background: var(--bg-tertiary, #EDE6DB);
+            .btn:hover:not(:disabled) {
+                background: var(--color-bg-tertiary, #EDE6DB);
             }
 
-            button:disabled {
+            .btn:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
             }
 
-            button.primary {
-                background: var(--accent, #8B4513);
-                border-color: var(--accent);
+            .btn.primary {
+                background: var(--color-accent, #8B4513);
+                border-color: var(--color-accent);
                 color: white;
             }
 
-            button.primary:hover:not(:disabled) {
-                background: var(--accent-hover, #A0522D);
+            .btn.primary:hover:not(:disabled) {
+                background: var(--color-accent-hover, #A0522D);
             }
 
-            .books-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                gap: 20px;
+            /* ==========================================================================
+               Table Container
+               ========================================================================== */
+            .table-container {
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: 8px;
+                overflow: hidden;
             }
 
+            .table-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* ==========================================================================
+               Table Styles
+               ========================================================================== */
+            .books-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.875rem;
+                min-width: 800px;
+            }
+
+            .books-table th {
+                text-align: left;
+                font-weight: 500;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--color-text-muted, #8B7E6A);
+                background: var(--color-bg-secondary, #F5F0E8);
+                border-bottom: 1px solid var(--color-border, #D4C9B8);
+                padding: 12px 16px;
+                white-space: nowrap;
+            }
+
+            .books-table th.sortable {
+                cursor: pointer;
+                user-select: none;
+                transition: color 0.15s ease-out;
+            }
+
+            .books-table th.sortable:hover {
+                color: var(--color-text-primary, #2C2416);
+            }
+
+            .books-table th .sort-icon {
+                margin-left: 4px;
+                opacity: 0.3;
+                font-size: 0.625rem;
+            }
+
+            .books-table th.sorted {
+                color: var(--color-accent, #8B4513);
+            }
+
+            .books-table th.sorted .sort-icon {
+                opacity: 1;
+            }
+
+            .books-table td {
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--color-border-subtle, #E5DED2);
+                vertical-align: middle;
+            }
+
+            .books-table tbody tr {
+                transition: background 0.15s ease-out;
+                cursor: pointer;
+            }
+
+            .books-table tbody tr:hover {
+                background: var(--color-surface-hover, #FDFCFA);
+            }
+
+            .books-table tbody tr:nth-child(even) {
+                background: rgba(245, 240, 232, 0.5);
+            }
+
+            .books-table tbody tr:nth-child(even):hover {
+                background: var(--color-surface-hover, #FDFCFA);
+            }
+
+            .books-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            /* Column-specific styles */
+            .col-cover {
+                width: 56px;
+                padding-right: 8px;
+            }
+
+            .cover-thumb {
+                width: 40px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 4px;
+                background: var(--color-bg-tertiary, #EDE6DB);
+                display: block;
+            }
+
+            .col-title {
+                font-weight: 500;
+                color: var(--color-text-primary, #2C2416);
+                max-width: 300px;
+            }
+
+            .col-title .title-text {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                line-height: 1.4;
+            }
+
+            .col-author {
+                color: var(--color-text-secondary, #5C5244);
+                max-width: 180px;
+            }
+
+            .col-author .author-text {
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .col-progress {
+                width: 100px;
+            }
+
+            .progress-text {
+                font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+                font-size: 0.75rem;
+                color: var(--color-accent, #8B4513);
+                margin-bottom: 4px;
+            }
+
+            .progress-bar {
+                height: 4px;
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-radius: 2px;
+                overflow: hidden;
+            }
+
+            .progress-bar .fill {
+                height: 100%;
+                background: var(--color-accent, #8B4513);
+                border-radius: 2px;
+                transition: width 0.3s ease-out;
+            }
+
+            .col-rating {
+                color: var(--color-warning, #B8860B);
+                font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+                font-size: 0.75rem;
+                letter-spacing: -1px;
+                white-space: nowrap;
+            }
+
+            .col-pages,
+            .col-date {
+                font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+                font-size: 0.8125rem;
+                color: var(--color-text-muted, #8B7E6A);
+                white-space: nowrap;
+            }
+
+            .no-rating {
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            /* ==========================================================================
+               Pagination
+               ========================================================================== */
             .pagination {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 gap: 12px;
-                margin-top: 30px;
-                padding: 20px 0;
+                margin-top: 24px;
+                padding: 16px 0;
             }
 
             .page-info {
-                color: var(--text-muted, #8B7E6A);
+                color: var(--color-text-muted, #8B7E6A);
                 font-size: 0.875rem;
             }
 
+            /* ==========================================================================
+               Mobile Responsiveness
+               ========================================================================== */
             @media (max-width: 768px) {
                 .controls {
                     flex-direction: column;
@@ -182,15 +351,23 @@ export class BtLibraryView extends BaseComponent {
                     padding: 8px 12px;
                 }
 
-                .books-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
+                .table-scroll {
+                    margin: 0 -16px;
+                    padding: 0 16px;
                 }
-            }
 
-            @media (max-width: 375px) {
-                .books-grid {
-                    grid-template-columns: 1fr;
+                .books-table {
+                    font-size: 0.8125rem;
+                }
+
+                .books-table th,
+                .books-table td {
+                    padding: 10px 12px;
+                }
+
+                /* Hide less important columns on mobile */
+                .hide-mobile {
+                    display: none;
                 }
             }
         `;
@@ -206,7 +383,7 @@ export class BtLibraryView extends BaseComponent {
                     title="Failed to load library"
                     description="${this.escapeHtml(error)}"
                 >
-                    <button onclick="location.reload()">Try Again</button>
+                    <button class="btn" onclick="location.reload()">Try Again</button>
                 </bt-empty-state>
             `;
         }
@@ -224,21 +401,18 @@ export class BtLibraryView extends BaseComponent {
                 <div class="filter-tabs">
                     ${this._renderFilterTabs(stats, filters.status)}
                 </div>
-                <select ref="sortSelect">
-                    ${this._renderSortOptions(filters)}
-                </select>
-                <button ref="enrichBtn" class="primary">Enhance Covers</button>
+                <button ref="enrichBtn" class="btn primary">Enhance Covers</button>
             </div>
 
             <div ref="booksContainer">
-                ${loading ? '<bt-loading text="Loading books..."></bt-loading>' : this._renderBooks(books)}
+                ${loading ? '<bt-loading text="Loading books..."></bt-loading>' : this._renderBooks(books, filters)}
             </div>
 
             ${!loading && pagination.pages > 1 ? `
                 <div class="pagination">
-                    <button ref="prevBtn" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>
+                    <button ref="prevBtn" class="btn" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button>
                     <span class="page-info">Page ${pagination.page} of ${pagination.pages}</span>
-                    <button ref="nextBtn" ${pagination.page >= pagination.pages ? 'disabled' : ''}>Next</button>
+                    <button ref="nextBtn" class="btn" ${pagination.page >= pagination.pages ? 'disabled' : ''}>Next</button>
                 </div>
             ` : ''}
         `;
@@ -262,28 +436,7 @@ export class BtLibraryView extends BaseComponent {
         `).join('');
     }
 
-    _renderSortOptions(filters) {
-        const options = [
-            { value: 'date_added-desc', label: 'Recently Added' },
-            { value: 'date_added-asc', label: 'Oldest Added' },
-            { value: 'finished_reading_at-desc', label: 'Recently Read' },
-            { value: 'title-asc', label: 'Title A-Z' },
-            { value: 'title-desc', label: 'Title Z-A' },
-            { value: 'author-asc', label: 'Author A-Z' },
-            { value: 'my_rating-desc', label: 'Highest Rated' },
-            { value: 'priority-desc', label: 'Priority' },
-            { value: 'page_count-desc', label: 'Most Pages' },
-            { value: 'year_published-desc', label: 'Newest Published' }
-        ];
-
-        const currentValue = `${filters.sort || 'date_added'}-${filters.order || 'desc'}`;
-
-        return options.map(opt => `
-            <option value="${opt.value}" ${currentValue === opt.value ? 'selected' : ''}>${opt.label}</option>
-        `).join('');
-    }
-
-    _renderBooks(books) {
+    _renderBooks(books, filters) {
         if (books.length === 0) {
             return `
                 <bt-empty-state
@@ -293,32 +446,107 @@ export class BtLibraryView extends BaseComponent {
             `;
         }
 
+        const currentSort = filters.sort || 'date_added';
+        const currentOrder = filters.order || 'desc';
+
         return `
-            <div class="books-grid">
-                ${books.map(book => `
-                    <bt-book-card data-book-id="${book.book_id}"></bt-book-card>
-                `).join('')}
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table class="books-table">
+                        <thead>
+                            <tr>
+                                <th class="col-cover"></th>
+                                <th class="sortable ${currentSort === 'title' ? 'sorted' : ''}" data-sort="title">
+                                    Title
+                                    <span class="sort-icon">${currentSort === 'title' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;'}</span>
+                                </th>
+                                <th class="sortable ${currentSort === 'author' ? 'sorted' : ''}" data-sort="author">
+                                    Author
+                                    <span class="sort-icon">${currentSort === 'author' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;'}</span>
+                                </th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th class="sortable hide-mobile ${currentSort === 'my_rating' ? 'sorted' : ''}" data-sort="my_rating">
+                                    Rating
+                                    <span class="sort-icon">${currentSort === 'my_rating' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
+                                </th>
+                                <th class="sortable hide-mobile ${currentSort === 'page_count' ? 'sorted' : ''}" data-sort="page_count">
+                                    Pages
+                                    <span class="sort-icon">${currentSort === 'page_count' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
+                                </th>
+                                <th class="sortable hide-mobile ${currentSort === 'date_added' ? 'sorted' : ''}" data-sort="date_added">
+                                    Added
+                                    <span class="sort-icon">${currentSort === 'date_added' ? (currentOrder === 'asc' ? '&#9650;' : '&#9660;') : '&#9660;'}</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${books.map(book => this._renderBookRow(book)).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
     }
 
+    _renderBookRow(book) {
+        const progress = book.progress_percent || 0;
+        const rating = book.my_rating ? this._renderStars(book.my_rating) : '<span class="no-rating">&#8211;</span>';
+        const pages = book.page_count || '&#8211;';
+        const dateAdded = book.date_added ? this._formatDate(book.date_added) : '&#8211;';
+
+        return `
+            <tr data-book-id="${book.book_id}">
+                <td class="col-cover">
+                    <img
+                        class="cover-thumb"
+                        src="${book.cover_image_url || ''}"
+                        alt=""
+                        onerror="this.style.visibility='hidden'"
+                    >
+                </td>
+                <td class="col-title">
+                    <span class="title-text">${this.escapeHtml(book.title)}</span>
+                </td>
+                <td class="col-author">
+                    <span class="author-text">${this.escapeHtml(book.author || '')}</span>
+                </td>
+                <td>
+                    <bt-status-badge status="${book.status}"></bt-status-badge>
+                </td>
+                <td class="col-progress">
+                    <div class="progress-text">${progress}%</div>
+                    <div class="progress-bar"><div class="fill" style="width: ${progress}%"></div></div>
+                </td>
+                <td class="col-rating hide-mobile">${rating}</td>
+                <td class="col-pages hide-mobile">${pages}</td>
+                <td class="col-date hide-mobile">${dateAdded}</td>
+            </tr>
+        `;
+    }
+
+    _renderStars(rating) {
+        const filled = '&#9733;';
+        const empty = '&#9734;';
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            stars += i <= rating ? filled : empty;
+        }
+        return stars;
+    }
+
+    _formatDate(dateStr) {
+        if (!dateStr) return '&#8211;';
+        try {
+            const date = new Date(dateStr);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        } catch {
+            return dateStr;
+        }
+    }
+
     afterRender() {
-        // Set book data on cards
-        const { books } = this.state;
-        books.forEach(book => {
-            const card = this.$(`bt-book-card[data-book-id="${book.book_id}"]`);
-            if (card) {
-                card.book = book;
-            }
-        });
-
-        // Add event listeners
-        this.$$('bt-book-card').forEach(card => {
-            card.addEventListener('book-click', (e) => {
-                this.emit('show-book-detail', { bookId: e.detail.book.book_id });
-            });
-        });
-
         // Search input
         const searchInput = this.ref('searchInput');
         if (searchInput) {
@@ -334,14 +562,22 @@ export class BtLibraryView extends BaseComponent {
             });
         });
 
-        // Sort select
-        const sortSelect = this.ref('sortSelect');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                const [sort, order] = sortSelect.value.split('-');
-                this._handleSortChange(sort, order);
+        // Sortable column headers
+        this.$$('.books-table th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                this._handleColumnSort(th.dataset.sort);
             });
-        }
+        });
+
+        // Table row clicks
+        this.$$('.books-table tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                const bookId = row.dataset.bookId;
+                if (bookId) {
+                    this.emit('show-book-detail', { bookId: parseInt(bookId, 10) });
+                }
+            });
+        });
 
         // Pagination
         const prevBtn = this.ref('prevBtn');
@@ -429,8 +665,21 @@ export class BtLibraryView extends BaseComponent {
         router.updateParams({ status, page: 1 });
     }
 
-    _handleSortChange(sort, order) {
-        router.updateParams({ sort, order, page: 1 });
+    _handleColumnSort(sortField) {
+        const filters = store.get('filters') || {};
+        const currentSort = filters.sort || 'date_added';
+        const currentOrder = filters.order || 'desc';
+
+        let newOrder;
+        if (currentSort === sortField) {
+            // Toggle order if clicking same column
+            newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Default order for new column
+            newOrder = (sortField === 'title' || sortField === 'author') ? 'asc' : 'desc';
+        }
+
+        router.updateParams({ sort: sortField, order: newOrder, page: 1 });
     }
 
     _handlePageChange(delta) {
