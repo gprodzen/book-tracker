@@ -14,3 +14,7 @@ __pycache__/
 .idea/
 .vscode/
 goodreads_library_export.csv
+
+# Claude settings (tracked for cross-machine consistency)
+!.claude/
+!.claude/settings.local.json
