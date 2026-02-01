@@ -58,6 +58,11 @@ async function renderPathItem(path) {
 
     const books = pathDetails.books || [];
 
+    // Display objective if present
+    const objectiveHtml = pathDetails.objective
+        ? `<div class="path-objective">${escapeHtml(pathDetails.objective)}</div>`
+        : '';
+
     return `
         <div class="path-item" data-path-id="${path.id}">
             <div class="path-item-header">
@@ -71,6 +76,8 @@ async function renderPathItem(path) {
                     <button onclick="confirmDeletePath(${path.id})">Delete</button>
                 </div>
             </div>
+
+            ${objectiveHtml}
 
             <div class="progress-bar" style="margin-bottom: 16px;">
                 <div class="progress-bar-fill ${progress === 100 ? 'complete' : ''}" style="width: ${progress}%"></div>
@@ -109,8 +116,12 @@ function showCreatePathModal() {
                 <input type="text" id="path-name" required placeholder="e.g., Leadership & Management">
             </div>
             <div class="form-group">
+                <label for="path-objective">Objective</label>
+                <textarea id="path-objective" placeholder="What do you want to achieve with this learning path?"></textarea>
+            </div>
+            <div class="form-group">
                 <label for="path-description">Description (optional)</label>
-                <textarea id="path-description" placeholder="What is this learning path about?"></textarea>
+                <textarea id="path-description" placeholder="Additional details about this learning path"></textarea>
             </div>
             <div class="form-group">
                 <label for="path-color">Color</label>
@@ -129,11 +140,12 @@ async function handleCreatePath(e) {
     e.preventDefault();
 
     const name = document.getElementById('path-name').value;
+    const objective = document.getElementById('path-objective').value;
     const description = document.getElementById('path-description').value;
     const color = document.getElementById('path-color').value;
 
     try {
-        await api.createPath({ name, description, color });
+        await api.createPath({ name, objective, description, color });
         hideModal();
         await renderPaths(document.getElementById('view-container'));
     } catch (error) {
@@ -152,6 +164,10 @@ async function showEditPathModal(pathId) {
                 <div class="form-group">
                     <label for="path-name">Name</label>
                     <input type="text" id="path-name" required value="${escapeHtml(path.name)}">
+                </div>
+                <div class="form-group">
+                    <label for="path-objective">Objective</label>
+                    <textarea id="path-objective">${escapeHtml(path.objective || '')}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="path-description">Description</label>
@@ -177,11 +193,12 @@ async function handleEditPath(e, pathId) {
     e.preventDefault();
 
     const name = document.getElementById('path-name').value;
+    const objective = document.getElementById('path-objective').value;
     const description = document.getElementById('path-description').value;
     const color = document.getElementById('path-color').value;
 
     try {
-        await api.updatePath(pathId, { name, description, color });
+        await api.updatePath(pathId, { name, objective, description, color });
         hideModal();
         await renderPaths(document.getElementById('view-container'));
     } catch (error) {

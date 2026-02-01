@@ -43,6 +43,14 @@ CREATE TABLE IF NOT EXISTS user_books (
     last_read_at TIMESTAMP,
     why_reading TEXT,  -- Context note for why you're reading this book
     priority INTEGER DEFAULT 0,  -- For queue ordering (higher = more important)
+    -- Format ownership (v1)
+    owns_kindle INTEGER DEFAULT 0,
+    owns_audible INTEGER DEFAULT 0,
+    owns_hardcopy INTEGER DEFAULT 0,
+    -- Idea source tracking (v1)
+    idea_source TEXT,
+    source_book_id INTEGER REFERENCES books(id),
+    date_captured DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(book_id)
@@ -91,6 +99,7 @@ CREATE TABLE IF NOT EXISTS learning_paths (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
+    objective TEXT,  -- v1: What you want to achieve with this learning path
     color TEXT DEFAULT '#58a6ff',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -127,6 +136,7 @@ CREATE INDEX IF NOT EXISTS idx_notes_user_book ON notes(user_book_id);
 CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 CREATE INDEX IF NOT EXISTS idx_learning_path_books_path ON learning_path_books(learning_path_id);
 CREATE INDEX IF NOT EXISTS idx_learning_path_books_book ON learning_path_books(user_book_id);
+CREATE INDEX IF NOT EXISTS idx_user_books_source_book ON user_books(source_book_id);
 
 -- View for easy querying of books with user data
 CREATE VIEW IF NOT EXISTS library_view AS
@@ -162,6 +172,12 @@ SELECT
     ub.last_read_at,
     ub.why_reading,
     ub.priority,
+    ub.owns_kindle,
+    ub.owns_audible,
+    ub.owns_hardcopy,
+    ub.idea_source,
+    ub.source_book_id,
+    ub.date_captured,
     -- Calculate days from added to read (for metrics)
     CAST(julianday(ub.finished_reading_at) - julianday(ub.date_added) AS INTEGER) as days_to_read,
     -- Calculate if book is stale (not touched in 30+ days)
