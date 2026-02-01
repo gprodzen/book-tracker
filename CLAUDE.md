@@ -512,6 +512,55 @@ Access at:
 
 ---
 
+## Git Workflow
+
+### Branching Strategy
+
+```
+main (production)
+  │
+  └── dev (integration branch)
+        │
+        ├── feature/dashboard-redesign
+        ├── feature/mobile-nav
+        └── fix/api-caching
+```
+
+- **main** — Production-ready code. Only updated via pull requests from `dev`.
+- **dev** — Active development branch. All new work starts here.
+- **feature/\*** or **fix/\*** — Short-lived branches for individual features or fixes.
+
+### Development Rules
+
+1. **All new development happens on the `dev` branch** — Never commit directly to `main`.
+2. **Create feature branches from `dev`** — For non-trivial work, branch off `dev` (e.g., `git checkout -b feature/my-feature dev`).
+3. **Merge back to `dev` when complete** — Once a feature is done and tested, merge it into `dev` and delete the feature branch.
+4. **Claude Code can commit and push directly to `dev`** — No PR required for `dev` branch updates.
+5. **Use pull requests to update `main`** — When `dev` is stable and ready for release, create a PR from `dev` to `main`.
+
+### Typical Workflow
+
+```bash
+# Start new feature
+git checkout dev
+git pull origin dev
+git checkout -b feature/my-feature
+
+# Work on feature...
+git add .
+git commit -m "Add my feature"
+
+# Merge back to dev
+git checkout dev
+git merge feature/my-feature
+git push origin dev
+
+# Cleanup
+git branch -d feature/my-feature
+```
+
+---
+
 ## File Structure
 
 ```
