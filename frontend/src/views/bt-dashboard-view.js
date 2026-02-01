@@ -234,7 +234,7 @@ export class BtDashboardView extends BaseComponent {
             }
 
             /* ==========================================================================
-               Currently Reading - Enhanced Cards with Progress Rings
+               Currently Reading - Book Spine Design (Refined Minimal)
                ========================================================================== */
 
             .reading-container {
@@ -272,118 +272,175 @@ export class BtDashboardView extends BaseComponent {
                 color: var(--color-error, #F87171);
             }
 
-            .reading-list {
+            /* Book Spine List Container */
+            .spine-list {
                 display: flex;
                 flex-direction: column;
-                gap: var(--space-3, 12px);
+                gap: 1px;
+                background: var(--color-border-subtle, #E5DED2);
+                border-radius: var(--radius-lg, 8px);
+                overflow: hidden;
             }
 
-            .reading-item {
+            /* Individual Spine Item */
+            .spine-item {
+                display: grid;
+                grid-template-columns: 4px 1fr auto;
+                align-items: center;
+                background: var(--color-surface, #FFFFFF);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+
+            .spine-item:hover {
+                background: var(--color-bg-secondary, #F5F0E8);
+            }
+
+            .spine-item:hover .spine-accent-bar {
+                width: 6px;
+            }
+
+            .spine-item:hover .spine-chevron {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            /* Colored Accent Bar (the spine) */
+            .spine-accent-bar {
+                width: 4px;
+                height: 100%;
+                transition: width 0.2s ease;
+            }
+
+            .spine-accent-bar.sienna { background: #8B4513; }
+            .spine-accent-bar.burgundy { background: #722F37; }
+            .spine-accent-bar.navy { background: #1A3A5C; }
+            .spine-accent-bar.forest { background: #2E5A4A; }
+            .spine-accent-bar.plum { background: #5D4A6B; }
+            .spine-accent-bar.slate { background: #4A5568; }
+
+            /* Main Content Area */
+            .spine-main {
                 display: flex;
                 align-items: center;
-                gap: var(--space-4, 16px);
-                padding: var(--space-3, 12px);
-                background: var(--color-bg-secondary, #F5F0E8);
-                border: 1px solid var(--color-border-subtle, #E5DED2);
-                border-radius: var(--radius-lg, 8px);
-                cursor: pointer;
-                transition: all var(--duration-fast, 150ms) var(--ease-out);
+                padding: var(--space-4, 16px) var(--space-5, 20px);
+                gap: var(--space-5, 20px);
             }
 
-            .reading-item:hover {
-                border-color: var(--color-accent, #8B4513);
-                background: var(--color-surface-hover, #1a2029);
-            }
-
-            .progress-ring-container {
-                position: relative;
-                width: 48px;
-                height: 48px;
-                flex-shrink: 0;
-            }
-
-            .progress-ring {
-                transform: rotate(-90deg);
-            }
-
-            .progress-ring-bg {
-                fill: none;
-                stroke: var(--color-bg-tertiary, #EDE6DB);
-                stroke-width: 4;
-            }
-
-            .progress-ring-fill {
-                fill: none;
-                stroke: var(--color-accent, #8B4513);
-                stroke-width: 4;
-                stroke-linecap: round;
-                transition: stroke-dashoffset var(--duration-slow, 350ms) var(--ease-out);
-            }
-
-            .progress-ring-fill.complete {
-                stroke: var(--color-success, #34D399);
-            }
-
-            .progress-ring-text {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-size: var(--text-xs, 0.75rem);
-                font-family: var(--font-mono);
-                font-weight: var(--font-semibold, 600);
-                color: var(--color-text-primary, #2C2416);
-            }
-
-            .reading-info {
+            .spine-info {
                 flex: 1;
                 min-width: 0;
             }
 
-            .reading-title {
-                font-weight: var(--font-medium, 500);
+            .spine-title {
+                font-size: 1rem;
+                font-weight: var(--font-semibold, 600);
                 color: var(--color-text-primary, #2C2416);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                margin-bottom: var(--space-1, 4px);
+                letter-spacing: -0.01em;
             }
 
-            .reading-author {
+            .spine-author {
                 font-size: var(--text-sm, 0.875rem);
                 color: var(--color-text-muted, #8B7E6A);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                margin-top: 2px;
             }
 
-            .reading-meta {
-                display: flex;
+            /* Stale Indicator */
+            .spine-stale {
+                display: inline-flex;
                 align-items: center;
-                gap: var(--space-2, 8px);
-                margin-top: var(--space-2, 8px);
-            }
-
-            .stale-indicator {
                 font-size: var(--text-xs, 0.75rem);
                 padding: 2px 6px;
                 border-radius: var(--radius-sm, 4px);
+                margin-top: var(--space-1, 4px);
             }
 
-            .stale-indicator.warning {
+            .spine-stale.warning {
                 background: var(--color-warning-muted, rgba(251, 191, 36, 0.15));
                 color: var(--color-warning, #FBBF24);
             }
 
-            .stale-indicator.danger {
+            .spine-stale.danger {
                 background: var(--color-error-muted, rgba(248, 113, 113, 0.15));
                 color: var(--color-error, #F87171);
             }
 
+            /* Meta Section (progress + chevron) */
+            .spine-meta {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4, 16px);
+                padding-right: var(--space-5, 20px);
+            }
+
+            .progress-track {
+                width: 80px;
+                height: 6px;
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-radius: 3px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: var(--color-accent, #8B4513);
+                border-radius: 3px;
+                transition: width 0.4s ease;
+            }
+
+            .progress-fill.complete {
+                background: var(--color-success, #2E7D4A);
+            }
+
+            .progress-text {
+                font-size: 0.8rem;
+                font-family: var(--font-mono);
+                font-weight: var(--font-medium, 500);
+                color: var(--color-text-secondary, #5C5244);
+                min-width: 36px;
+                text-align: right;
+            }
+
+            .spine-chevron {
+                color: var(--color-text-muted, #8B7E6A);
+                opacity: 0;
+                transform: translateX(-4px);
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+            }
+
+            /* Empty State */
             .reading-empty {
                 text-align: center;
                 padding: var(--space-8, 32px) var(--space-4, 16px);
                 color: var(--color-text-muted, #8B7E6A);
+            }
+
+            /* Responsive adjustments for spine items */
+            @media (max-width: 600px) {
+                .spine-main {
+                    padding: var(--space-3, 12px) var(--space-4, 16px);
+                }
+
+                .spine-meta {
+                    padding-right: var(--space-3, 12px);
+                    gap: var(--space-2, 8px);
+                }
+
+                .progress-track {
+                    width: 60px;
+                }
+
+                .spine-chevron {
+                    display: none;
+                }
             }
 
             /* ==========================================================================
@@ -910,8 +967,8 @@ export class BtDashboardView extends BaseComponent {
                     <span class="wip-indicator ${wipClass}">${readingCount} / ${wipLimit}</span>
                 </div>
                 ${books.length > 0 ? `
-                    <div class="reading-list">
-                        ${books.slice(0, 4).map(book => this._renderReadingItem(book)).join('')}
+                    <div class="spine-list">
+                        ${books.slice(0, 5).map((book, index) => this._renderSpineItem(book, index)).join('')}
                     </div>
                 ` : `
                     <div class="reading-empty">
@@ -925,36 +982,42 @@ export class BtDashboardView extends BaseComponent {
         `;
     }
 
-    _renderReadingItem(book) {
+    /**
+     * Render a book as a spine item (Refined Minimal design)
+     * @param {Object} book - Book data
+     * @param {number} index - Index for color cycling
+     */
+    _renderSpineItem(book, index) {
         const progress = book.progress_percent || 0;
-        const circumference = 2 * Math.PI * 18; // radius = 18
-        const strokeDashoffset = circumference - (progress / 100) * circumference;
         const staleDays = this._getDaysSinceRead(book.last_read_at);
         const staleClass = staleDays > 30 ? 'danger' : staleDays > 7 ? 'warning' : '';
 
+        // Cycle through spine colors for visual variety
+        const spineColors = ['sienna', 'burgundy', 'navy', 'forest', 'plum', 'slate'];
+        const spineColor = spineColors[index % spineColors.length];
+
         return `
-            <div class="reading-item" data-book-id="${book.book_id}">
-                <div class="progress-ring-container">
-                    <svg class="progress-ring" width="48" height="48">
-                        <circle class="progress-ring-bg" cx="24" cy="24" r="18"></circle>
-                        <circle class="progress-ring-fill ${progress >= 100 ? 'complete' : ''}"
-                            cx="24" cy="24" r="18"
-                            stroke-dasharray="${circumference}"
-                            stroke-dashoffset="${strokeDashoffset}">
-                        </circle>
-                    </svg>
-                    <span class="progress-ring-text">${progress}%</span>
-                </div>
-                <div class="reading-info">
-                    <div class="reading-title">${this.escapeHtml(book.title)}</div>
-                    <div class="reading-author">${this.escapeHtml(book.author)}</div>
-                    ${staleClass ? `
-                        <div class="reading-meta">
-                            <span class="stale-indicator ${staleClass}">
-                                ${staleDays}d ago
+            <div class="spine-item" data-book-id="${book.book_id}">
+                <div class="spine-accent-bar ${spineColor}"></div>
+                <div class="spine-main">
+                    <div class="spine-info">
+                        <div class="spine-title">${this.escapeHtml(book.title)}</div>
+                        <div class="spine-author">${this.escapeHtml(book.author)}</div>
+                        ${staleClass ? `
+                            <span class="spine-stale ${staleClass}">
+                                ${staleDays}d since last read
                             </span>
-                        </div>
-                    ` : ''}
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="spine-meta">
+                    <div class="progress-track">
+                        <div class="progress-fill ${progress >= 100 ? 'complete' : ''}" style="width: ${progress}%;"></div>
+                    </div>
+                    <span class="progress-text">${progress}%</span>
+                    <svg class="spine-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
             </div>
         `;
@@ -1153,8 +1216,8 @@ export class BtDashboardView extends BaseComponent {
         // Animate stat counters
         this._animateCounters();
 
-        // Add click handlers for reading items
-        this.$$('.reading-item').forEach(item => {
+        // Add click handlers for spine items (currently reading books)
+        this.$$('.spine-item').forEach(item => {
             item.addEventListener('click', () => {
                 const bookId = item.dataset.bookId;
                 this.emit('show-book-detail', { bookId: parseInt(bookId) });
