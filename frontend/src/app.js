@@ -371,7 +371,7 @@ class BookTrackerApp {
                 </div>
                 <div class="form-group">
                     <label for="path-color">Color</label>
-                    <input type="color" id="path-color" value="#58a6ff">
+                    <input type="color" id="path-color" value="#8B4513">
                 </div>
                 <div class="form-actions">
                     <button type="button" onclick="document.querySelector('bt-modal').close()">Cancel</button>
@@ -430,7 +430,7 @@ class BookTrackerApp {
                     </div>
                     <div class="form-group">
                         <label for="path-color">Color</label>
-                        <input type="color" id="path-color" value="${path.color || '#58a6ff'}">
+                        <input type="color" id="path-color" value="${path.color || '#8B4513'}">
                     </div>
                     <div class="form-actions">
                         <button type="button" onclick="document.querySelector('bt-modal').close()">Cancel</button>

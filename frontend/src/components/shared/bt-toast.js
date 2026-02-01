@@ -1,5 +1,7 @@
 /**
  * bt-toast - Toast notification component
+ *
+ * Polished with left accent border by type, slide-in animation, and improved styling.
  */
 
 import { BaseComponent, defineComponent } from '../../core/base-component.js';
@@ -17,117 +19,155 @@ export class BtToast extends BaseComponent {
         return `
             :host {
                 position: fixed;
-                bottom: 24px;
+                bottom: var(--space-6, 24px);
                 left: 50%;
                 transform: translateX(-50%);
-                z-index: var(--z-toast, 1100);
+                z-index: var(--z-toast, 700);
                 pointer-events: none;
             }
 
             .toast {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                border-radius: 8px;
-                padding: 12px 20px;
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-3, 12px) var(--space-5, 20px);
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                gap: var(--space-3, 12px);
+                box-shadow: var(--shadow-lg,
+                    0 10px 15px -3px rgba(44, 36, 22, 0.1),
+                    0 4px 6px -2px rgba(44, 36, 22, 0.05));
                 pointer-events: auto;
-                animation: slideUp 0.3s ease;
-                max-width: 400px;
+                animation: toastSlideIn var(--duration-normal, 250ms) var(--ease-spring);
+                max-width: 420px;
+                min-width: 280px;
+                border-left: 3px solid;
             }
 
             .toast.hiding {
-                animation: slideDown 0.2s ease forwards;
+                animation: toastSlideOut var(--duration-fast, 150ms) var(--ease-in) forwards;
             }
 
+            /* Type-specific accent colors */
             .toast.success {
-                border-color: var(--green, #3fb950);
+                border-left-color: var(--color-success, #2E7D4A);
             }
 
             .toast.error {
-                border-color: var(--red, #f85149);
+                border-left-color: var(--color-error, #A0522D);
             }
 
             .toast.warning {
-                border-color: var(--yellow, #d29922);
+                border-left-color: var(--color-warning, #B8860B);
+            }
+
+            .toast.info {
+                border-left-color: var(--color-info, #4A6B8A);
             }
 
             .icon {
-                font-size: 1.25rem;
+                width: 20px;
+                height: 20px;
                 flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .success .icon {
-                color: var(--green, #3fb950);
+                color: var(--color-success, #2E7D4A);
             }
 
             .error .icon {
-                color: var(--red, #f85149);
+                color: var(--color-error, #A0522D);
             }
 
             .warning .icon {
-                color: var(--yellow, #d29922);
+                color: var(--color-warning, #B8860B);
             }
 
             .info .icon {
-                color: var(--accent, #58a6ff);
+                color: var(--color-info, #4A6B8A);
+            }
+
+            .icon svg {
+                width: 20px;
+                height: 20px;
             }
 
             .message {
-                font-size: 0.875rem;
-                color: var(--text, #c9d1d9);
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-primary, #2C2416);
+                line-height: var(--leading-snug, 1.375);
+                flex: 1;
             }
 
             .close-btn {
-                background: none;
+                background: transparent;
                 border: none;
-                color: var(--text-muted, #8b949e);
+                color: var(--color-text-muted, #8B7E6A);
                 cursor: pointer;
-                padding: 4px;
-                font-size: 1rem;
-                margin-left: auto;
+                padding: var(--space-1, 4px);
+                margin: calc(-1 * var(--space-1, 4px));
+                font-size: 1.25rem;
                 flex-shrink: 0;
+                border-radius: var(--radius-sm, 4px);
+                transition: color var(--duration-fast, 150ms) var(--ease-out),
+                            background var(--duration-fast, 150ms) var(--ease-out);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
             }
 
             .close-btn:hover {
-                color: var(--text, #c9d1d9);
+                color: var(--color-text-primary, #2C2416);
+                background: var(--color-bg-tertiary, #EDE6DB);
             }
 
-            @keyframes slideUp {
+            @keyframes toastSlideIn {
                 from {
                     opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(16px) scale(0.95);
                 }
                 to {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
                 }
             }
 
-            @keyframes slideDown {
+            @keyframes toastSlideOut {
                 from {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
                 }
                 to {
                     opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(16px) scale(0.95);
                 }
             }
 
             /* Mobile positioning */
             @media (max-width: 768px) {
                 :host {
-                    bottom: 80px; /* Above FAB */
-                    left: 16px;
-                    right: 16px;
+                    bottom: calc(var(--space-20, 80px) + var(--space-4, 16px)); /* Above FAB */
+                    left: var(--space-4, 16px);
+                    right: var(--space-4, 16px);
                     transform: none;
                 }
 
                 .toast {
                     max-width: none;
+                    min-width: 0;
+                }
+            }
+
+            /* Reduced motion */
+            @media (prefers-reduced-motion: reduce) {
+                .toast,
+                .toast.hiding {
+                    animation: none;
                 }
             }
         `;
@@ -139,18 +179,42 @@ export class BtToast extends BaseComponent {
         }
 
         const { type, message, dismissible } = this._current;
+
+        // SVG icons for each type
         const icons = {
-            success: '\u2713',
-            error: '\u2717',
-            warning: '\u26A0',
-            info: '\u2139'
+            success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>`,
+            error: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>`,
+            warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>`,
+            info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>`
         };
 
         return `
             <div class="toast ${type}" ref="toast">
                 <span class="icon">${icons[type] || icons.info}</span>
                 <span class="message">${this.escapeHtml(message)}</span>
-                ${dismissible ? '<button class="close-btn" ref="closeBtn">&times;</button>' : ''}
+                ${dismissible ? `
+                    <button class="close-btn" ref="closeBtn" aria-label="Dismiss">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                ` : ''}
             </div>
         `;
     }
@@ -222,7 +286,7 @@ export class BtToast extends BaseComponent {
                 if (this._queue.length > 0) {
                     this.show(this._queue.shift());
                 }
-            }, 200);
+            }, 150);
         } else {
             this._current = null;
 

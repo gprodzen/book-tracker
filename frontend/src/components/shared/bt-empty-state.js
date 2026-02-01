@@ -18,7 +18,7 @@ export class BtEmptyState extends BaseComponent {
             .empty-state {
                 text-align: center;
                 padding: 60px 20px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .icon {
@@ -29,7 +29,7 @@ export class BtEmptyState extends BaseComponent {
 
             .title {
                 font-size: 1rem;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 margin-bottom: 8px;
                 font-weight: 600;
             }

@@ -31,8 +31,8 @@ export class BtLoginView extends BaseComponent {
             }
 
             .login-box {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 12px;
                 padding: 40px;
                 max-width: 400px;
@@ -43,11 +43,11 @@ export class BtLoginView extends BaseComponent {
             h1 {
                 font-size: 1.5rem;
                 margin-bottom: 8px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .subtitle {
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 margin-bottom: 24px;
             }
 
@@ -60,23 +60,23 @@ export class BtLoginView extends BaseComponent {
                 width: 100%;
                 padding: 12px;
                 font-size: 1rem;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .form-group input:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             .error-message {
-                color: var(--red, #f85149);
+                color: var(--red, #A0522D);
                 font-size: 0.875rem;
                 margin-bottom: 12px;
                 padding: 8px;
-                background: rgba(248, 81, 73, 0.1);
+                background: rgba(160, 82, 45, 0.1);
                 border-radius: 6px;
             }
 
@@ -85,7 +85,7 @@ export class BtLoginView extends BaseComponent {
                 padding: 12px;
                 font-size: 1rem;
                 margin-top: 8px;
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border: none;
                 border-radius: 6px;
                 color: white;
@@ -94,7 +94,7 @@ export class BtLoginView extends BaseComponent {
             }
 
             .login-btn:hover:not(:disabled) {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             .login-btn:disabled {

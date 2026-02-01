@@ -31,8 +31,8 @@ export class BtReadingCard extends BaseComponent {
             }
 
             .reading-card {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 8px;
                 overflow: hidden;
                 cursor: pointer;
@@ -41,7 +41,7 @@ export class BtReadingCard extends BaseComponent {
 
             .reading-card:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                box-shadow: 0 4px 12px rgba(44, 36, 22, 0.1);
             }
 
             bt-book-cover {
@@ -67,7 +67,7 @@ export class BtReadingCard extends BaseComponent {
                 justify-content: space-between;
                 align-items: center;
                 font-size: 0.7rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 margin-bottom: 6px;
             }
 
@@ -75,16 +75,16 @@ export class BtReadingCard extends BaseComponent {
                 font-size: 0.65rem;
                 padding: 2px 6px;
                 border-radius: 4px;
-                background: rgba(248, 81, 73, 0.2);
-                color: var(--red, #f85149);
+                background: rgba(160, 82, 45, 0.15);
+                color: var(--red, #A0522D);
             }
 
             .path-badge {
                 font-size: 0.65rem;
                 padding: 2px 6px;
                 border-radius: 4px;
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text-muted, #8b949e);
+                background: var(--bg-tertiary, #EDE6DB);
+                color: var(--text-muted, #8B7E6A);
                 margin-top: 6px;
                 display: inline-block;
             }
@@ -93,7 +93,7 @@ export class BtReadingCard extends BaseComponent {
             .quick-progress {
                 margin-top: 8px;
                 padding-top: 8px;
-                border-top: 1px solid var(--border, #30363d);
+                border-top: 1px solid var(--border, #D4C9B8);
             }
 
             .quick-progress-form {
@@ -106,26 +106,26 @@ export class BtReadingCard extends BaseComponent {
                 width: 60px;
                 padding: 4px 8px;
                 font-size: 0.75rem;
-                background: var(--bg-tertiary, #21262d);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-tertiary, #EDE6DB);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 4px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .quick-progress input:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             .quick-progress span {
                 font-size: 0.7rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .quick-progress button {
                 padding: 4px 8px;
                 font-size: 0.7rem;
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border: none;
                 border-radius: 4px;
                 color: white;
@@ -133,7 +133,7 @@ export class BtReadingCard extends BaseComponent {
             }
 
             .quick-progress button:hover {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             .quick-progress button:disabled {

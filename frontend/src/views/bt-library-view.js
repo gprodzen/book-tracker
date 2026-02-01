@@ -51,22 +51,22 @@ export class BtLibraryView extends BaseComponent {
             .search-box input {
                 width: 100%;
                 padding: 8px 12px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 font-size: 0.875rem;
             }
 
             .search-box input:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             .filter-tabs {
                 display: flex;
                 gap: 4px;
-                background: var(--bg-secondary, #161b22);
+                background: var(--bg-secondary, #F5F0E8);
                 padding: 4px;
                 border-radius: 8px;
             }
@@ -76,46 +76,46 @@ export class BtLibraryView extends BaseComponent {
                 border: none;
                 background: transparent;
                 border-radius: 6px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 cursor: pointer;
                 font-size: 0.875rem;
                 transition: all 0.2s;
             }
 
             .filter-tab:hover {
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .filter-tab.active {
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-tertiary, #EDE6DB);
+                color: var(--text, #2C2416);
             }
 
             .filter-tab .count {
                 margin-left: 6px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 font-size: 0.75rem;
             }
 
             select {
                 padding: 8px 12px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 font-size: 0.875rem;
                 cursor: pointer;
             }
 
             select:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             button {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text, #2C2416);
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -123,7 +123,7 @@ export class BtLibraryView extends BaseComponent {
             }
 
             button:hover:not(:disabled) {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             button:disabled {
@@ -132,13 +132,13 @@ export class BtLibraryView extends BaseComponent {
             }
 
             button.primary {
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border-color: var(--accent);
                 color: white;
             }
 
             button.primary:hover:not(:disabled) {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             .books-grid {
@@ -157,7 +157,7 @@ export class BtLibraryView extends BaseComponent {
             }
 
             .page-info {
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 font-size: 0.875rem;
             }
 

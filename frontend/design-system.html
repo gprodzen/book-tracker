@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tracker - Design System</title>
+
+    <!-- Google Fonts: Crimson Pro (serif) + IBM Plex Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Design Tokens -->
+    <link rel="stylesheet" href="styles/tokens.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            color: var(--color-text-primary);
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: var(--color-text-muted);
+            margin-bottom: 48px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 48px;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+        }
+
+        h3 {
+            font-size: 1.125rem;
+            margin-bottom: 16px;
+            color: var(--color-text-secondary);
+        }
+
+        /* Color Swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .color-swatch {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+        }
+
+        .color-preview {
+            height: 80px;
+        }
+
+        .color-info {
+            padding: 12px;
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+
+        .color-value {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Typography Samples */
+        .type-sample {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+        }
+
+        .type-mono {
+            font-family: var(--font-mono);
+        }
+
+        /* Component Demos */
+        .demo-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 150ms ease-out;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: var(--color-text-inverse);
+            border-color: var(--color-accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text-primary);
+            border-color: var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-border-emphasis);
+        }
+
+        .btn-danger {
+            background: var(--color-error-muted);
+            color: var(--color-error);
+            border-color: var(--color-error);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 320px;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--color-accent);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-text {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-reading {
+            background: rgba(139, 69, 19, 0.15);
+            color: var(--color-accent);
+        }
+
+        .badge-finished {
+            background: rgba(46, 125, 74, 0.15);
+            color: var(--color-success);
+        }
+
+        .badge-queued {
+            background: rgba(46, 125, 74, 0.15);
+            color: var(--color-queued);
+        }
+
+        .badge-interested {
+            background: rgba(123, 92, 158, 0.15);
+            color: var(--color-interested);
+        }
+
+        .badge-owned {
+            background: rgba(184, 134, 11, 0.15);
+            color: var(--color-warning);
+        }
+
+        /* Form Elements */
+        .input {
+            padding: 10px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            width: 280px;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px var(--color-accent-muted);
+        }
+
+        .input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        /* Spacing Demo */
+        .spacing-demo {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .spacing-box {
+            background: var(--color-accent-muted);
+            border: 1px solid var(--color-accent);
+            border-radius: 4px;
+        }
+
+        .spacing-label {
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            color: var(--color-text-muted);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Shadow Demo */
+        .shadow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+        }
+
+        .shadow-box {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .shadow-box span {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Nav Demo */
+        .nav-demo {
+            background: rgba(250, 247, 242, 0.92);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            font-weight: 600;
+            font-size: 1.125rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 150ms ease-out;
+            border: none;
+            background: none;
+        }
+
+        .nav-link:hover {
+            color: var(--color-text-primary);
+            background: var(--color-bg-tertiary);
+        }
+
+        .nav-link.active {
+            color: var(--color-accent);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 6px;
+            background: var(--color-bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+            width: 200px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--color-accent);
+            border-radius: 3px;
+            transition: width 250ms ease-out;
+        }
+
+        /* Toast Demo */
+        .toast {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-lg);
+            border-left: 3px solid;
+            max-width: 360px;
+        }
+
+        .toast-success {
+            border-left-color: var(--color-success);
+        }
+
+        .toast-error {
+            border-left-color: var(--color-error);
+        }
+
+        .toast-warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .toast-info {
+            border-left-color: var(--color-info);
+        }
+
+        .toast-message {
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book Tracker Design System</h1>
+    <p class="subtitle">Warm Library Theme — Classic library aesthetic with cream backgrounds, sienna accents, and Crimson Pro serif typography</p>
+
+    <h2>Colors</h2>
+
+    <h3>Background Colors</h3>
+    <div class="color-grid">
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-bg-primary);"></div>
+            <div class="color-info">
+                <div class="color-name">Primary Background</div>
+                <div class="color-value">#FAF7F2</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-bg-secondary);"></div>
+            <div class="color-info">
+                <div class="color-name">Secondary Background</div>
+                <div class="color-value">#F5F0E8</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-bg-tertiary);"></div>
+            <div class="color-info">
+                <div class="color-name">Tertiary Background</div>
+                <div class="color-value">#EDE6DB</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-surface); border-bottom: 1px solid var(--color-border);"></div>
+            <div class="color-info">
+                <div class="color-name">Surface (Cards)</div>
+                <div class="color-value">#FFFFFF</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Text Colors</h3>
+    <div class="color-grid">
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-text-primary);"></div>
+            <div class="color-info">
+                <div class="color-name">Primary Text</div>
+                <div class="color-value">#2C2416</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-text-secondary);"></div>
+            <div class="color-info">
+                <div class="color-name">Secondary Text</div>
+                <div class="color-value">#5C5244</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-text-muted);"></div>
+            <div class="color-info">
+                <div class="color-name">Muted Text</div>
+                <div class="color-value">#8B7E6A</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Accent & Semantic Colors</h3>
+    <div class="color-grid">
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-accent);"></div>
+            <div class="color-info">
+                <div class="color-name">Accent (Sienna)</div>
+                <div class="color-value">#8B4513</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-success);"></div>
+            <div class="color-info">
+                <div class="color-name">Success</div>
+                <div class="color-value">#2E7D4A</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-warning);"></div>
+            <div class="color-info">
+                <div class="color-name">Warning</div>
+                <div class="color-value">#B8860B</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-error);"></div>
+            <div class="color-info">
+                <div class="color-name">Error</div>
+                <div class="color-value">#A0522D</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-info);"></div>
+            <div class="color-info">
+                <div class="color-name">Info</div>
+                <div class="color-value">#4A6B8A</div>
+            </div>
+        </div>
+        <div class="color-swatch">
+            <div class="color-preview" style="background: var(--color-interested);"></div>
+            <div class="color-info">
+                <div class="color-name">Interested</div>
+                <div class="color-value">#7B5C9E</div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Typography</h2>
+
+    <div class="type-sample">
+        <div class="type-label">--font-display: 'Crimson Pro' (Headings & Body)</div>
+        <p class="type-display" style="font-size: 2.25rem; font-weight: 700;">The quick brown fox jumps</p>
+        <p class="type-display" style="font-size: 1.375rem; font-weight: 600; margin-top: 8px;">Over the lazy dog — 1234567890</p>
+        <p class="type-display" style="font-size: 1rem; margin-top: 8px;">Book Tracker uses Crimson Pro, a classic serif typeface that evokes the warmth and tradition of physical books and library aesthetics.</p>
+    </div>
+
+    <div class="type-sample">
+        <div class="type-label">--font-mono: 'IBM Plex Mono' (Numbers & Code)</div>
+        <p class="type-mono" style="font-size: 1rem;">45% complete • Page 234 of 520 • ISBN: 978-0-13-468599-1</p>
+    </div>
+
+    <h2>Components</h2>
+
+    <h3>Navigation</h3>
+    <div class="nav-demo">
+        <div class="nav-brand">
+            <span>📚</span>
+            <span>Book Tracker</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-link active">Dashboard</button>
+            <button class="nav-link">Pipeline</button>
+            <button class="nav-link">Paths</button>
+            <button class="nav-link">Library</button>
+        </div>
+    </div>
+
+    <h3>Buttons</h3>
+    <div class="demo-row">
+        <button class="btn btn-primary">Primary Action</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-danger">Delete</button>
+    </div>
+
+    <h3>Status Badges</h3>
+    <div class="demo-row">
+        <span class="badge badge-reading">Reading</span>
+        <span class="badge badge-finished">Finished</span>
+        <span class="badge badge-queued">Queued</span>
+        <span class="badge badge-owned">Owned</span>
+        <span class="badge badge-interested">Interested</span>
+    </div>
+
+    <h3>Form Inputs</h3>
+    <div class="demo-row">
+        <input type="text" class="input" placeholder="Search books...">
+    </div>
+
+    <h3>Progress Bar</h3>
+    <div class="demo-row">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 65%;"></div>
+        </div>
+        <span style="font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-accent);">65%</span>
+    </div>
+
+    <h3>Card</h3>
+    <div class="demo-row">
+        <div class="card">
+            <div class="card-title">The Design of Everyday Things</div>
+            <div class="card-text">Don Norman • 368 pages</div>
+            <div style="margin-top: 12px;">
+                <span class="badge badge-reading">Reading</span>
+            </div>
+        </div>
+    </div>
+
+    <h3>Toast Notifications</h3>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="toast toast-success">
+            <span class="toast-message">Book added to your library!</span>
+        </div>
+        <div class="toast toast-error">
+            <span class="toast-message">Failed to update progress</span>
+        </div>
+        <div class="toast toast-warning">
+            <span class="toast-message">WIP limit reached (5 books)</span>
+        </div>
+        <div class="toast toast-info">
+            <span class="toast-message">Syncing changes...</span>
+        </div>
+    </div>
+
+    <h2>Shadows</h2>
+    <div class="shadow-grid">
+        <div class="shadow-box" style="box-shadow: var(--shadow-sm);">
+            <span>--shadow-sm</span>
+        </div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-md);">
+            <span>--shadow-md</span>
+        </div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-lg);">
+            <span>--shadow-lg</span>
+        </div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-xl);">
+            <span>--shadow-xl</span>
+        </div>
+    </div>
+
+    <h2>Spacing Scale</h2>
+    <div class="spacing-demo">
+        <div>
+            <div class="spacing-box" style="width: 4px; height: 4px;"></div>
+            <div class="spacing-label">4px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 8px; height: 8px;"></div>
+            <div class="spacing-label">8px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 12px; height: 12px;"></div>
+            <div class="spacing-label">12px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 16px; height: 16px;"></div>
+            <div class="spacing-label">16px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 24px; height: 24px;"></div>
+            <div class="spacing-label">24px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 32px; height: 32px;"></div>
+            <div class="spacing-label">32px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 48px; height: 48px;"></div>
+            <div class="spacing-label">48px</div>
+        </div>
+        <div>
+            <div class="spacing-box" style="width: 64px; height: 64px;"></div>
+            <div class="spacing-label">64px</div>
+        </div>
+    </div>
+
+    <h2>Border Radius</h2>
+    <div class="demo-row">
+        <div style="width: 60px; height: 60px; background: var(--color-accent-muted); border: 1px solid var(--color-accent); border-radius: 4px;"></div>
+        <div style="width: 60px; height: 60px; background: var(--color-accent-muted); border: 1px solid var(--color-accent); border-radius: 8px;"></div>
+        <div style="width: 60px; height: 60px; background: var(--color-accent-muted); border: 1px solid var(--color-accent); border-radius: 12px;"></div>
+        <div style="width: 60px; height: 60px; background: var(--color-accent-muted); border: 1px solid var(--color-accent); border-radius: 16px;"></div>
+        <div style="width: 60px; height: 60px; background: var(--color-accent-muted); border: 1px solid var(--color-accent); border-radius: 9999px;"></div>
+    </div>
+    <div class="demo-row" style="margin-top: 8px;">
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); width: 60px; text-align: center;">4px</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); width: 60px; text-align: center;">8px</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); width: 60px; text-align: center;">12px</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); width: 60px; text-align: center;">16px</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); width: 60px; text-align: center;">full</span>
+    </div>
+</body>
+</html>

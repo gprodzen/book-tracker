@@ -21,51 +21,65 @@ export class BtAppShell extends BaseComponent {
             }
 
             .app-shell {
-                max-width: 1400px;
+                max-width: var(--container-max, 1400px);
                 margin: 0 auto;
-                padding: 20px;
+                padding: var(--space-6, 24px);
             }
 
             .offline-banner {
                 position: fixed;
-                top: 0;
+                top: var(--nav-height, 64px);
                 left: 0;
                 right: 0;
-                background: var(--yellow, #d29922);
-                color: #000;
+                background: linear-gradient(135deg, var(--color-warning, #B8860B) 0%, #9A7209 100%);
+                color: var(--color-text-inverse, #FFFFFF);
                 text-align: center;
-                padding: 8px;
-                font-size: 0.875rem;
-                font-weight: 500;
-                z-index: 1000;
+                padding: var(--space-2, 8px) var(--space-4, 16px);
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-medium, 500);
+                z-index: var(--z-sticky, 200);
                 transform: translateY(-100%);
-                transition: transform 0.3s ease;
+                transition: transform var(--duration-normal, 250ms) var(--ease-out);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: var(--space-2, 8px);
             }
 
             .offline-banner.visible {
                 transform: translateY(0);
             }
 
+            .offline-icon {
+                font-size: 1rem;
+            }
+
             .pending-count {
-                margin-left: 8px;
-                background: rgba(0, 0, 0, 0.2);
-                padding: 2px 8px;
-                border-radius: 12px;
-                font-size: 0.75rem;
+                background: rgba(0, 0, 0, 0.15);
+                padding: var(--space-1, 4px) var(--space-2, 8px);
+                border-radius: var(--radius-full, 9999px);
+                font-size: var(--text-xs, 0.75rem);
+                font-family: var(--font-mono);
             }
 
             .header-slot {
-                margin-bottom: 24px;
+                /* Header is now fixed, no margin needed */
             }
 
             .main-content {
-                min-height: calc(100vh - 200px);
+                min-height: calc(100vh - var(--nav-height, 64px) - var(--space-12, 48px));
+                animation: fadeIn var(--duration-normal, 250ms) var(--ease-out);
             }
 
             @media (max-width: 768px) {
                 .app-shell {
-                    padding: 12px;
+                    padding: var(--space-4, 16px);
                 }
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
             }
         `;
     }
@@ -77,13 +91,11 @@ export class BtAppShell extends BaseComponent {
 
         return `
             <div class="offline-banner ${!isOnline ? 'visible' : ''}" ref="offlineBanner">
-                You're offline. Changes will sync when you reconnect.
+                <span class="offline-icon">📡</span>
+                <span>You're offline. Changes will sync when you reconnect.</span>
                 ${pendingCount > 0 ? `<span class="pending-count">${pendingCount} pending</span>` : ''}
             </div>
             <div class="app-shell">
-                <header class="header-slot">
-                    <slot name="header"></slot>
-                </header>
                 <main class="main-content">
                     <slot></slot>
                 </main>

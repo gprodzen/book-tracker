@@ -18,32 +18,32 @@
 }
 
 .status-finished {
-    background: rgba(63, 185, 80, 0.2);
+    background: rgba(46, 125, 74, 0.15);
     color: var(--green);
 }
 
 .status-reading {
-    background: rgba(88, 166, 255, 0.2);
+    background: rgba(139, 69, 19, 0.15);
     color: var(--accent);
 }
 
 .status-queued {
-    background: rgba(163, 113, 247, 0.2);
+    background: rgba(46, 125, 74, 0.15);
     color: var(--purple);
 }
 
 .status-owned {
-    background: rgba(210, 153, 34, 0.2);
+    background: rgba(184, 134, 11, 0.15);
     color: var(--yellow);
 }
 
 .status-interested {
-    background: rgba(139, 148, 158, 0.2);
+    background: rgba(123, 92, 158, 0.15);
     color: var(--text-muted);
 }
 
 .status-abandoned {
-    background: rgba(248, 81, 73, 0.2);
+    background: rgba(160, 82, 45, 0.15);
     color: var(--red);
 }
 

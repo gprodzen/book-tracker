@@ -26,33 +26,33 @@ export class BtStatusBadge extends BaseComponent {
             }
 
             .status-finished {
-                background: rgba(63, 185, 80, 0.2);
-                color: var(--green, #3fb950);
+                background: rgba(46, 125, 74, 0.15);
+                color: var(--green, #2E7D4A);
             }
 
             .status-reading {
-                background: rgba(88, 166, 255, 0.2);
-                color: var(--accent, #58a6ff);
+                background: rgba(139, 69, 19, 0.15);
+                color: var(--accent, #8B4513);
             }
 
             .status-queued {
-                background: rgba(163, 113, 247, 0.2);
-                color: var(--purple, #a371f7);
+                background: rgba(46, 125, 74, 0.15);
+                color: var(--purple, #2E7D4A);
             }
 
             .status-owned {
-                background: rgba(210, 153, 34, 0.2);
-                color: var(--yellow, #d29922);
+                background: rgba(184, 134, 11, 0.15);
+                color: var(--yellow, #B8860B);
             }
 
             .status-interested {
-                background: rgba(139, 148, 158, 0.2);
-                color: var(--text-muted, #8b949e);
+                background: rgba(123, 92, 158, 0.15);
+                color: var(--text-muted, #7B5C9E);
             }
 
             .status-abandoned {
-                background: rgba(248, 81, 73, 0.2);
-                color: var(--red, #f85149);
+                background: rgba(160, 82, 45, 0.15);
+                color: var(--red, #A0522D);
             }
         `;
     }

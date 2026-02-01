@@ -49,11 +49,11 @@ export class BtBookDetail extends BaseComponent {
             .info-section h2 {
                 font-size: 1.25rem;
                 margin-bottom: 8px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .author {
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
                 margin-bottom: 16px;
             }
 
@@ -65,34 +65,34 @@ export class BtBookDetail extends BaseComponent {
             }
 
             .detail-label {
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 min-width: 100px;
             }
 
             select {
                 padding: 6px 12px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 font-size: 0.875rem;
                 cursor: pointer;
             }
 
             select:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             .book-rating {
-                color: var(--yellow, #d29922);
+                color: var(--yellow, #B8860B);
             }
 
             .path-tag {
                 font-size: 0.75rem;
                 padding: 2px 8px;
                 border-radius: 4px;
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
                 margin-right: 6px;
             }
 
@@ -104,7 +104,7 @@ export class BtBookDetail extends BaseComponent {
             }
 
             .tag {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
                 padding: 4px 12px;
                 border-radius: 16px;
                 font-size: 0.75rem;
@@ -113,22 +113,22 @@ export class BtBookDetail extends BaseComponent {
             .description {
                 margin-top: 16px;
                 padding-top: 16px;
-                border-top: 1px solid var(--border, #30363d);
+                border-top: 1px solid var(--border, #D4C9B8);
                 font-size: 0.875rem;
                 line-height: 1.7;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .section {
                 margin-top: 20px;
                 padding-top: 20px;
-                border-top: 1px solid var(--border, #30363d);
+                border-top: 1px solid var(--border, #D4C9B8);
             }
 
             .section h3, .section h4 {
                 margin-bottom: 12px;
                 font-size: 0.875rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             /* Progress update */
@@ -146,22 +146,22 @@ export class BtBookDetail extends BaseComponent {
 
             .progress-input-group label {
                 font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .progress-input-group input {
                 width: 100px;
                 padding: 8px 12px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 font-size: 0.875rem;
             }
 
             .progress-input-group input:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             /* Format ownership */
@@ -180,7 +180,7 @@ export class BtBookDetail extends BaseComponent {
 
             /* Source link */
             .source-link {
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
                 text-decoration: none;
                 cursor: pointer;
             }
@@ -197,7 +197,7 @@ export class BtBookDetail extends BaseComponent {
 
             .sparked-books li {
                 padding: 8px 0;
-                border-bottom: 1px solid var(--border, #30363d);
+                border-bottom: 1px solid var(--border, #D4C9B8);
                 display: flex;
                 align-items: center;
                 gap: 12px;
@@ -208,26 +208,26 @@ export class BtBookDetail extends BaseComponent {
             }
 
             .sparked-books a {
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 text-decoration: none;
                 cursor: pointer;
             }
 
             .sparked-books a:hover {
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
             }
 
             /* Actions */
             .actions {
                 margin-top: 20px;
                 padding-top: 20px;
-                border-top: 1px solid var(--border, #30363d);
+                border-top: 1px solid var(--border, #D4C9B8);
             }
 
             button {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text, #2C2416);
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -235,7 +235,7 @@ export class BtBookDetail extends BaseComponent {
             }
 
             button:hover:not(:disabled) {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             button:disabled {
@@ -244,13 +244,13 @@ export class BtBookDetail extends BaseComponent {
             }
 
             button.primary {
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border-color: var(--accent);
                 color: white;
             }
 
             button.primary:hover:not(:disabled) {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             @media (max-width: 768px) {

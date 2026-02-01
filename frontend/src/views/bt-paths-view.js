@@ -37,13 +37,13 @@ export class BtPathsView extends BaseComponent {
             h1 {
                 font-size: 1.5rem;
                 font-weight: 600;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             button {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text, #2C2416);
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -51,25 +51,25 @@ export class BtPathsView extends BaseComponent {
             }
 
             button:hover:not(:disabled) {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             button.primary {
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border-color: var(--accent);
                 color: white;
             }
 
             button.primary:hover:not(:disabled) {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             button.danger {
-                color: var(--red, #f85149);
+                color: var(--red, #A0522D);
             }
 
             button.danger:hover {
-                background: rgba(248, 81, 73, 0.1);
+                background: rgba(160, 82, 45, 0.1);
             }
 
             .paths-list {
@@ -79,8 +79,8 @@ export class BtPathsView extends BaseComponent {
             }
 
             .path-item {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 8px;
                 padding: 20px;
             }
@@ -114,21 +114,21 @@ export class BtPathsView extends BaseComponent {
 
             .path-progress {
                 font-size: 0.875rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .path-objective {
                 font-size: 0.9rem;
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
                 margin-bottom: 12px;
                 padding: 8px 12px;
-                background: rgba(88, 166, 255, 0.1);
+                background: rgba(139, 69, 19, 0.1);
                 border-radius: 6px;
-                border-left: 3px solid var(--accent, #58a6ff);
+                border-left: 3px solid var(--accent, #8B4513);
             }
 
             .path-description {
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 font-size: 0.875rem;
                 margin-bottom: 16px;
             }
@@ -152,30 +152,30 @@ export class BtPathsView extends BaseComponent {
             }
 
             .path-book:hover {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             .path-book.completed {
-                color: var(--green, #3fb950);
+                color: var(--green, #2E7D4A);
             }
 
             .path-book.reading {
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
             }
 
             .path-book.pending {
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .book-progress {
                 font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .path-footer {
                 margin-top: 16px;
                 padding-top: 16px;
-                border-top: 1px solid var(--border, #30363d);
+                border-top: 1px solid var(--border, #D4C9B8);
             }
 
             @media (max-width: 768px) {

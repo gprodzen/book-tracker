@@ -38,7 +38,7 @@ export class BtBookForm extends BaseComponent {
                 display: flex;
                 gap: 8px;
                 margin-bottom: 20px;
-                border-bottom: 1px solid var(--border, #30363d);
+                border-bottom: 1px solid var(--border, #D4C9B8);
                 padding-bottom: 12px;
             }
 
@@ -46,19 +46,19 @@ export class BtBookForm extends BaseComponent {
                 background: transparent;
                 border: none;
                 padding: 8px 16px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 cursor: pointer;
                 border-radius: 6px;
                 font-size: 0.875rem;
             }
 
             .tab-btn:hover {
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
             }
 
             .tab-btn.active {
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-tertiary, #EDE6DB);
+                color: var(--text, #2C2416);
             }
 
             .form-group {
@@ -68,24 +68,24 @@ export class BtBookForm extends BaseComponent {
             .form-group label {
                 display: block;
                 font-size: 0.875rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 margin-bottom: 6px;
             }
 
             input, select, textarea {
                 width: 100%;
                 padding: 8px 12px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 6px;
-                color: var(--text, #c9d1d9);
+                color: var(--text, #2C2416);
                 font-size: 0.875rem;
                 font-family: inherit;
             }
 
             input:focus, select:focus, textarea:focus {
                 outline: none;
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             textarea {
@@ -101,9 +101,9 @@ export class BtBookForm extends BaseComponent {
             }
 
             button {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text, #2C2416);
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
@@ -111,7 +111,7 @@ export class BtBookForm extends BaseComponent {
             }
 
             button:hover:not(:disabled) {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             button:disabled {
@@ -120,13 +120,13 @@ export class BtBookForm extends BaseComponent {
             }
 
             button.primary {
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border-color: var(--accent);
                 color: white;
             }
 
             button.primary:hover:not(:disabled) {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             /* Search results */
@@ -139,7 +139,7 @@ export class BtBookForm extends BaseComponent {
                 display: flex;
                 gap: 12px;
                 padding: 12px;
-                border: 1px solid var(--border, #30363d);
+                border: 1px solid var(--border, #D4C9B8);
                 border-radius: 8px;
                 margin-bottom: 8px;
                 cursor: pointer;
@@ -147,7 +147,7 @@ export class BtBookForm extends BaseComponent {
             }
 
             .search-result-item:hover {
-                border-color: var(--accent, #58a6ff);
+                border-color: var(--accent, #8B4513);
             }
 
             .search-result-cover {
@@ -170,14 +170,14 @@ export class BtBookForm extends BaseComponent {
 
             .search-result-author {
                 font-size: 0.8rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 margin-bottom: 4px;
             }
 
             .search-result-year,
             .search-result-pages {
                 font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             /* Confirm book */
@@ -186,7 +186,7 @@ export class BtBookForm extends BaseComponent {
                 gap: 16px;
                 margin-bottom: 20px;
                 padding-bottom: 20px;
-                border-bottom: 1px solid var(--border, #30363d);
+                border-bottom: 1px solid var(--border, #D4C9B8);
             }
 
             .confirm-cover {
@@ -202,37 +202,37 @@ export class BtBookForm extends BaseComponent {
             }
 
             .confirm-details .author {
-                color: var(--accent, #58a6ff);
+                color: var(--accent, #8B4513);
                 margin-bottom: 8px;
             }
 
             .confirm-details p {
                 font-size: 0.875rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .source-book-note {
                 font-size: 0.8rem;
-                color: var(--accent, #58a6ff);
-                background: rgba(88, 166, 255, 0.1);
+                color: var(--accent, #8B4513);
+                background: rgba(139, 69, 19, 0.1);
                 padding: 8px 12px;
                 border-radius: 6px;
                 margin-bottom: 12px;
             }
 
             .error-message {
-                color: var(--red, #f85149);
+                color: var(--red, #A0522D);
                 font-size: 0.875rem;
                 margin-bottom: 12px;
                 padding: 8px;
-                background: rgba(248, 81, 73, 0.1);
+                background: rgba(160, 82, 45, 0.1);
                 border-radius: 6px;
             }
 
             .empty-state {
                 text-align: center;
                 padding: 40px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
         `;
     }

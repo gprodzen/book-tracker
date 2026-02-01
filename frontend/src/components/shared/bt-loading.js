@@ -22,14 +22,14 @@ export class BtLoading extends BaseComponent {
                 align-items: center;
                 justify-content: center;
                 padding: 40px;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
             }
 
             .spinner {
                 width: 24px;
                 height: 24px;
-                border: 2px solid var(--bg-tertiary, #21262d);
-                border-top-color: var(--accent, #58a6ff);
+                border: 2px solid var(--bg-tertiary, #EDE6DB);
+                border-top-color: var(--accent, #8B4513);
                 border-radius: 50%;
                 animation: spin 0.8s linear infinite;
             }
@@ -55,9 +55,9 @@ export class BtLoading extends BaseComponent {
             .skeleton {
                 background: linear-gradient(
                     90deg,
-                    var(--bg-tertiary, #21262d) 25%,
-                    var(--bg-secondary, #161b22) 50%,
-                    var(--bg-tertiary, #21262d) 75%
+                    var(--bg-tertiary, #EDE6DB) 25%,
+                    var(--bg-secondary, #F5F0E8) 50%,
+                    var(--bg-tertiary, #EDE6DB) 75%
                 );
                 background-size: 200% 100%;
                 animation: skeleton 1.5s infinite;

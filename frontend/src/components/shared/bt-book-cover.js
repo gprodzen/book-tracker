@@ -17,7 +17,7 @@ export class BtBookCover extends BaseComponent {
 
             .cover {
                 aspect-ratio: 2/3;
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -41,12 +41,12 @@ export class BtBookCover extends BaseComponent {
                 padding: 16px;
                 text-align: center;
                 font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 height: 100%;
-                background: linear-gradient(135deg, var(--bg-tertiary, #21262d) 0%, var(--bg-secondary, #161b22) 100%);
+                background: linear-gradient(135deg, var(--bg-tertiary, #EDE6DB) 0%, var(--bg-secondary, #F5F0E8) 100%);
                 word-break: break-word;
                 line-height: 1.3;
             }

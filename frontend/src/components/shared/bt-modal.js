@@ -1,5 +1,7 @@
 /**
  * bt-modal - Modal dialog container
+ *
+ * Polished with backdrop blur, scale + fade animations, and mobile full-screen mode.
  */
 
 import { BaseComponent, defineComponent } from '../../core/base-component.js';
@@ -32,85 +34,163 @@ export class BtModal extends BaseComponent {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.7);
-                z-index: var(--z-modal, 1000);
+                background: rgba(44, 36, 22, 0.5);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                z-index: var(--z-modal, 500);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 20px;
-                animation: fadeIn 0.2s ease;
+                padding: var(--space-5, 20px);
+                animation: overlayFadeIn var(--duration-normal, 250ms) var(--ease-out);
             }
 
             .modal {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                border-radius: 12px;
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-2xl, 16px);
                 max-width: 800px;
                 width: 100%;
                 max-height: 90vh;
-                overflow-y: auto;
-                animation: slideUp 0.2s ease;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                box-shadow: var(--shadow-xl,
+                    0 20px 25px -5px rgba(44, 36, 22, 0.1),
+                    0 10px 10px -5px rgba(44, 36, 22, 0.04));
+                animation: modalSlideIn var(--duration-normal, 250ms) var(--ease-spring);
             }
 
             .modal-header {
                 display: flex;
                 justify-content: space-between;
-                align-items: flex-start;
-                padding: 20px;
-                border-bottom: 1px solid var(--border, #30363d);
+                align-items: center;
+                padding: var(--space-5, 20px) var(--space-6, 24px);
+                border-bottom: 1px solid var(--color-border-subtle, #E5DED2);
+                background: linear-gradient(
+                    180deg,
+                    var(--color-bg-secondary, #F5F0E8) 0%,
+                    rgba(245, 240, 232, 0.98) 100%
+                );
                 position: sticky;
                 top: 0;
-                background: var(--bg-secondary, #161b22);
                 z-index: 1;
             }
 
             .modal-title {
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: var(--text, #c9d1d9);
+                font-size: var(--text-xl, 1.375rem);
+                font-weight: var(--font-semibold, 600);
+                color: var(--color-text-primary, #2C2416);
                 margin: 0;
-                padding-right: 40px;
+                line-height: var(--leading-tight, 1.25);
             }
 
             .modal-close {
-                background: none;
+                background: transparent;
                 border: none;
                 font-size: 1.5rem;
                 cursor: pointer;
-                color: var(--text-muted, #8b949e);
+                color: var(--color-text-muted, #8B7E6A);
                 padding: 0;
-                width: 32px;
-                height: 32px;
+                width: 36px;
+                height: 36px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 6px;
-                transition: background 0.2s, color 0.2s;
+                border-radius: var(--radius-md, 6px);
+                transition: background var(--duration-fast, 150ms) var(--ease-out),
+                            color var(--duration-fast, 150ms) var(--ease-out);
                 flex-shrink: 0;
+                margin-left: var(--space-4, 16px);
             }
 
             .modal-close:hover {
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text, #c9d1d9);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-primary, #2C2416);
+            }
+
+            .modal-close:focus-visible {
+                outline: none;
+                box-shadow: var(--focus-ring);
             }
 
             .modal-body {
-                padding: 20px;
+                padding: var(--space-6, 24px);
+                overflow-y: auto;
+                flex: 1;
             }
 
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
+            .modal-body::-webkit-scrollbar {
+                width: 8px;
             }
 
-            @keyframes slideUp {
+            .modal-body::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .modal-body::-webkit-scrollbar-thumb {
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-radius: var(--radius-full, 9999px);
+            }
+
+            .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                gap: var(--space-3, 12px);
+                padding: var(--space-4, 16px) var(--space-6, 24px);
+                border-top: 1px solid var(--color-border-subtle, #E5DED2);
+                background: var(--color-bg-secondary, #F5F0E8);
+            }
+
+            /* Animations */
+            @keyframes overlayFadeIn {
                 from {
                     opacity: 0;
-                    transform: translateY(20px);
+                    backdrop-filter: blur(0);
                 }
                 to {
                     opacity: 1;
-                    transform: translateY(0);
+                    backdrop-filter: blur(8px);
+                }
+            }
+
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.95) translateY(16px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            /* Closing animation (applied via JS) */
+            .overlay.closing {
+                animation: overlayFadeOut var(--duration-fast, 150ms) var(--ease-in) forwards;
+            }
+
+            .overlay.closing .modal {
+                animation: modalSlideOut var(--duration-fast, 150ms) var(--ease-in) forwards;
+            }
+
+            @keyframes overlayFadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+
+            @keyframes modalSlideOut {
+                from {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: scale(0.95) translateY(16px);
                 }
             }
 
@@ -118,13 +198,66 @@ export class BtModal extends BaseComponent {
             @media (max-width: 768px) {
                 .overlay {
                     padding: 0;
+                    align-items: flex-end;
                 }
 
                 .modal {
                     max-width: 100%;
-                    max-height: 100%;
-                    height: 100%;
-                    border-radius: 0;
+                    max-height: 95vh;
+                    border-radius: var(--radius-2xl, 16px) var(--radius-2xl, 16px) 0 0;
+                    animation: modalSlideUpMobile var(--duration-normal, 250ms) var(--ease-out);
+                }
+
+                .modal-header {
+                    padding: var(--space-4, 16px);
+                }
+
+                .modal-title {
+                    font-size: var(--text-lg, 1.125rem);
+                }
+
+                .modal-body {
+                    padding: var(--space-4, 16px);
+                }
+
+                .modal-footer {
+                    padding: var(--space-4, 16px);
+                }
+
+                @keyframes modalSlideUpMobile {
+                    from {
+                        opacity: 0;
+                        transform: translateY(100%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .overlay.closing .modal {
+                    animation: modalSlideDownMobile var(--duration-fast, 150ms) var(--ease-in) forwards;
+                }
+
+                @keyframes modalSlideDownMobile {
+                    from {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: translateY(100%);
+                    }
+                }
+            }
+
+            /* Reduced motion */
+            @media (prefers-reduced-motion: reduce) {
+                .overlay,
+                .modal,
+                .overlay.closing,
+                .overlay.closing .modal {
+                    animation: none;
                 }
             }
         `;
@@ -138,7 +271,12 @@ export class BtModal extends BaseComponent {
                 <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
                     <div class="modal-header">
                         <h2 class="modal-title" id="modal-title">${this.escapeHtml(title)}</h2>
-                        <button class="modal-close" ref="closeBtn" aria-label="Close">&times;</button>
+                        <button class="modal-close" ref="closeBtn" aria-label="Close modal">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                     <div class="modal-body">
                         <slot></slot>
@@ -208,8 +346,19 @@ export class BtModal extends BaseComponent {
     }
 
     close() {
-        this.removeAttribute('open');
-        this.emit('close');
+        // Add closing animation
+        const overlay = this.ref('overlay');
+        if (overlay) {
+            overlay.classList.add('closing');
+            setTimeout(() => {
+                this.removeAttribute('open');
+                overlay.classList.remove('closing');
+                this.emit('close');
+            }, 150);
+        } else {
+            this.removeAttribute('open');
+            this.emit('close');
+        }
     }
 
     /**

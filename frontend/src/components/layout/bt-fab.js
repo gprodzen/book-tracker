@@ -26,7 +26,7 @@ export class BtFab extends BaseComponent {
                 min-width: 56px;
                 height: 56px;
                 border-radius: 28px;
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 border: none;
                 color: white;
                 font-size: 24px;
@@ -38,7 +38,7 @@ export class BtFab extends BaseComponent {
             .fab:hover {
                 transform: scale(1.05);
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-                background: var(--accent-hover, #79b8ff);
+                background: var(--accent-hover, #A0522D);
             }
 
             .fab:active {
@@ -47,7 +47,7 @@ export class BtFab extends BaseComponent {
 
             .fab:focus {
                 outline: none;
-                box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3), 0 6px 16px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.3), 0 6px 16px rgba(0, 0, 0, 0.4);
             }
 
             :host([extended]) .fab {
@@ -73,13 +73,13 @@ export class BtFab extends BaseComponent {
 
             /* Secondary color variant */
             :host([color="secondary"]) .fab {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
+                background: var(--bg-secondary, #F5F0E8);
+                border: 1px solid var(--border, #D4C9B8);
+                color: var(--text, #2C2416);
             }
 
             :host([color="secondary"]) .fab:hover {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
             }
 
             /* Mobile positioning */

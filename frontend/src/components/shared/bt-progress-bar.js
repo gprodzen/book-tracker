@@ -23,7 +23,7 @@ export class BtProgressBar extends BaseComponent {
             }
 
             .progress-bar {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--bg-tertiary, #EDE6DB);
                 border-radius: 4px;
                 height: 6px;
                 overflow: hidden;
@@ -31,19 +31,19 @@ export class BtProgressBar extends BaseComponent {
             }
 
             .progress-bar-fill {
-                background: var(--accent, #58a6ff);
+                background: var(--accent, #8B4513);
                 height: 100%;
                 border-radius: 4px;
                 transition: width 0.3s ease;
             }
 
             .progress-bar-fill.complete {
-                background: var(--green, #3fb950);
+                background: var(--green, #2E7D4A);
             }
 
             .progress-text {
                 font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                color: var(--text-muted, #8B7E6A);
                 min-width: 36px;
                 text-align: right;
             }

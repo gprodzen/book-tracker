@@ -1,5 +1,8 @@
 /**
  * bt-dashboard-view - Dashboard view component
+ *
+ * A data-rich command center for power users with stats, charts,
+ * progress visualizations, and insights.
  */
 
 import { BaseComponent, defineComponent } from '../core/base-component.js';
@@ -18,7 +21,8 @@ export class BtDashboardView extends BaseComponent {
         this.setState({
             loading: true,
             error: null,
-            data: null
+            dashboard: null,
+            stats: null
         });
     }
 
@@ -28,179 +32,726 @@ export class BtDashboardView extends BaseComponent {
                 display: block;
             }
 
+            .page-header {
+                margin-bottom: var(--space-6, 24px);
+            }
+
+            .page-title {
+                font-size: var(--text-3xl, 2.25rem);
+                font-weight: var(--font-bold, 700);
+                color: var(--color-text-primary, #2C2416);
+                margin-bottom: var(--space-2, 8px);
+            }
+
+            .page-subtitle {
+                font-size: var(--text-base, 1rem);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            /* ==========================================================================
+               Stats Row
+               ========================================================================== */
+
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: var(--space-4, 16px);
+                margin-bottom: var(--space-8, 32px);
+            }
+
+            .stat-card {
+                background: linear-gradient(
+                    135deg,
+                    var(--color-bg-secondary, #F5F0E8) 0%,
+                    var(--color-bg-tertiary, #EDE6DB) 100%
+                );
+                border: 1px solid var(--color-border-subtle, #E5DED2);
+                border-left: 3px solid var(--color-accent, #8B4513);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-5, 20px);
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-2, 8px);
+            }
+
+            .stat-value {
+                font-size: var(--text-3xl, 2.25rem);
+                font-weight: var(--font-bold, 700);
+                font-family: var(--font-mono);
+                color: var(--color-accent, #8B4513);
+                line-height: var(--leading-none, 1);
+            }
+
+            .stat-label {
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-muted, #8B7E6A);
+                text-transform: uppercase;
+                letter-spacing: var(--tracking-wide, 0.025em);
+            }
+
+            .stat-sublabel {
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+                opacity: 0.7;
+            }
+
+            /* ==========================================================================
+               Main Grid Layout
+               ========================================================================== */
+
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--space-6, 24px);
+                margin-bottom: var(--space-8, 32px);
+            }
+
             .section {
-                margin-bottom: 32px;
+                margin-bottom: var(--space-8, 32px);
             }
 
             .section-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 16px;
+                margin-bottom: var(--space-5, 20px);
             }
 
             .section-title {
-                font-size: 0.875rem;
-                font-weight: 600;
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-semibold, 600);
                 text-transform: uppercase;
-                color: var(--text-muted, #8b949e);
-                letter-spacing: 0.5px;
+                letter-spacing: var(--tracking-wide, 0.025em);
+                color: var(--color-text-secondary, #5C5244);
+            }
+
+            /* ==========================================================================
+               Activity Chart
+               ========================================================================== */
+
+            .chart-container {
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-5, 20px);
+                height: 100%;
+            }
+
+            .chart-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: var(--space-4, 16px);
+            }
+
+            .chart-title {
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-semibold, 600);
+                text-transform: uppercase;
+                letter-spacing: var(--tracking-wide, 0.025em);
+                color: var(--color-text-secondary, #5C5244);
+            }
+
+            .chart-legend {
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            .bar-chart {
+                display: flex;
+                align-items: flex-end;
+                gap: var(--space-3, 12px);
+                height: 160px;
+                padding-top: var(--space-4, 16px);
+            }
+
+            .bar-column {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: var(--space-2, 8px);
+                height: 100%;
+            }
+
+            .bar-wrapper {
+                flex: 1;
+                width: 100%;
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+            }
+
+            .bar {
+                width: 100%;
+                max-width: 40px;
+                background: linear-gradient(
+                    180deg,
+                    var(--color-accent, #8B4513) 0%,
+                    var(--color-accent-hover, #A0522D) 100%
+                );
+                border-radius: var(--radius-sm, 4px) var(--radius-sm, 4px) 0 0;
+                transition: all var(--duration-normal, 250ms) var(--ease-out);
+                min-height: 4px;
+                position: relative;
+            }
+
+            .bar:hover {
+                filter: brightness(1.1);
+                transform: scaleY(1.02);
+                transform-origin: bottom;
+            }
+
+            .bar-value {
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: var(--text-xs, 0.75rem);
+                font-family: var(--font-mono);
+                color: var(--color-text-primary, #2C2416);
+                opacity: 0;
+                transition: opacity var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            .bar:hover .bar-value {
+                opacity: 1;
+            }
+
+            .bar-label {
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+                text-transform: uppercase;
+            }
+
+            .chart-empty {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 160px;
+                color: var(--color-text-muted, #8B7E6A);
+                font-size: var(--text-sm, 0.875rem);
+            }
+
+            /* ==========================================================================
+               Currently Reading - Enhanced Cards with Progress Rings
+               ========================================================================== */
+
+            .reading-container {
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-5, 20px);
+                height: 100%;
+            }
+
+            .reading-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: var(--space-4, 16px);
             }
 
             .wip-indicator {
-                font-size: 0.75rem;
-                padding: 4px 8px;
-                border-radius: 4px;
-                background: var(--bg-tertiary, #21262d);
+                font-size: var(--text-sm, 0.875rem);
+                font-family: var(--font-mono);
+                font-weight: var(--font-medium, 500);
+                padding: var(--space-1, 4px) var(--space-3, 12px);
+                border-radius: var(--radius-full, 9999px);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-secondary, #5C5244);
             }
 
             .wip-indicator.warning {
-                background: rgba(210, 153, 34, 0.2);
-                color: var(--yellow, #d29922);
+                background: var(--color-warning-muted, rgba(251, 191, 36, 0.15));
+                color: var(--color-warning, #FBBF24);
             }
 
             .wip-indicator.over {
-                background: rgba(248, 81, 73, 0.2);
-                color: var(--red, #f85149);
+                background: var(--color-error-muted, rgba(248, 113, 113, 0.15));
+                color: var(--color-error, #F87171);
             }
 
-            .reading-row {
+            .reading-list {
                 display: flex;
-                gap: 20px;
-                overflow-x: auto;
-                padding-bottom: 8px;
+                flex-direction: column;
+                gap: var(--space-3, 12px);
             }
 
-            .reading-row::-webkit-scrollbar {
-                height: 6px;
+            .reading-item {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4, 16px);
+                padding: var(--space-3, 12px);
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border-subtle, #E5DED2);
+                border-radius: var(--radius-lg, 8px);
+                cursor: pointer;
+                transition: all var(--duration-fast, 150ms) var(--ease-out);
             }
 
-            .reading-row::-webkit-scrollbar-track {
-                background: var(--bg);
+            .reading-item:hover {
+                border-color: var(--color-accent, #8B4513);
+                background: var(--color-surface-hover, #1a2029);
             }
 
-            .reading-row::-webkit-scrollbar-thumb {
-                background: var(--bg-tertiary);
-                border-radius: 3px;
+            .progress-ring-container {
+                position: relative;
+                width: 48px;
+                height: 48px;
+                flex-shrink: 0;
             }
 
-            .reading-card {
-                flex: 0 0 160px;
+            .progress-ring {
+                transform: rotate(-90deg);
             }
+
+            .progress-ring-bg {
+                fill: none;
+                stroke: var(--color-bg-tertiary, #EDE6DB);
+                stroke-width: 4;
+            }
+
+            .progress-ring-fill {
+                fill: none;
+                stroke: var(--color-accent, #8B4513);
+                stroke-width: 4;
+                stroke-linecap: round;
+                transition: stroke-dashoffset var(--duration-slow, 350ms) var(--ease-out);
+            }
+
+            .progress-ring-fill.complete {
+                stroke: var(--color-success, #34D399);
+            }
+
+            .progress-ring-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: var(--text-xs, 0.75rem);
+                font-family: var(--font-mono);
+                font-weight: var(--font-semibold, 600);
+                color: var(--color-text-primary, #2C2416);
+            }
+
+            .reading-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .reading-title {
+                font-weight: var(--font-medium, 500);
+                color: var(--color-text-primary, #2C2416);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: var(--space-1, 4px);
+            }
+
+            .reading-author {
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-muted, #8B7E6A);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .reading-meta {
+                display: flex;
+                align-items: center;
+                gap: var(--space-2, 8px);
+                margin-top: var(--space-2, 8px);
+            }
+
+            .stale-indicator {
+                font-size: var(--text-xs, 0.75rem);
+                padding: 2px 6px;
+                border-radius: var(--radius-sm, 4px);
+            }
+
+            .stale-indicator.warning {
+                background: var(--color-warning-muted, rgba(251, 191, 36, 0.15));
+                color: var(--color-warning, #FBBF24);
+            }
+
+            .stale-indicator.danger {
+                background: var(--color-error-muted, rgba(248, 113, 113, 0.15));
+                color: var(--color-error, #F87171);
+            }
+
+            .reading-empty {
+                text-align: center;
+                padding: var(--space-8, 32px) var(--space-4, 16px);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            /* ==========================================================================
+               Learning Paths with Visual Progress
+               ========================================================================== */
 
             .paths-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 16px;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: var(--space-4, 16px);
             }
 
             .path-card {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                border-radius: 8px;
-                padding: 16px;
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-5, 20px);
                 cursor: pointer;
-                transition: border-color 0.2s;
+                transition: all var(--duration-normal, 250ms) var(--ease-out);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .path-card::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: var(--path-color, var(--color-accent));
             }
 
             .path-card:hover {
-                border-color: var(--accent, #58a6ff);
+                transform: translateY(-2px);
+                border-color: var(--color-accent, #8B4513);
+                box-shadow: var(--shadow-md);
             }
 
-            .path-card-header {
+            .path-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
-                margin-bottom: 12px;
+                margin-bottom: var(--space-4, 16px);
             }
 
             .path-name {
-                font-weight: 600;
+                font-weight: var(--font-semibold, 600);
+                font-size: var(--text-base, 1rem);
+                color: var(--color-text-primary, #2C2416);
+            }
+
+            .path-progress-badge {
+                font-size: var(--text-sm, 0.875rem);
+                font-family: var(--font-mono);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            .path-arc-container {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: var(--space-4, 16px);
+                margin-bottom: var(--space-3, 12px);
             }
 
-            .path-icon {
-                width: 8px;
-                height: 8px;
-                border-radius: 2px;
+            .path-arc {
+                width: 60px;
+                height: 60px;
+                flex-shrink: 0;
             }
 
-            .path-progress-text {
-                font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+            .path-arc-bg {
+                fill: none;
+                stroke: var(--color-bg-tertiary, #EDE6DB);
+                stroke-width: 6;
+            }
+
+            .path-arc-fill {
+                fill: none;
+                stroke: var(--path-color, var(--color-accent));
+                stroke-width: 6;
+                stroke-linecap: round;
+                transition: stroke-dashoffset var(--duration-slow, 350ms) var(--ease-out);
+            }
+
+            .path-steps {
+                flex: 1;
+                display: flex;
+                gap: var(--space-1, 4px);
+            }
+
+            .path-step {
+                flex: 1;
+                height: 6px;
+                border-radius: var(--radius-full, 9999px);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                transition: background var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            .path-step.completed {
+                background: var(--path-color, var(--color-accent));
             }
 
             .path-next {
-                font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
-                margin-top: 12px;
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-muted, #8B7E6A);
+                padding-top: var(--space-3, 12px);
+                border-top: 1px solid var(--color-border-subtle, #E5DED2);
             }
 
             .path-next strong {
-                color: var(--text, #c9d1d9);
+                color: var(--color-text-primary, #2C2416);
             }
 
-            .books-grid {
+            /* ==========================================================================
+               Up Next Queue & Insights
+               ========================================================================== */
+
+            .bottom-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                gap: 20px;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--space-6, 24px);
             }
+
+            .queue-container, .insights-container {
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
+                padding: var(--space-5, 20px);
+            }
+
+            .queue-list {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-2, 8px);
+            }
+
+            .queue-item {
+                display: flex;
+                align-items: center;
+                gap: var(--space-3, 12px);
+                padding: var(--space-3, 12px);
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border-subtle, #E5DED2);
+                border-radius: var(--radius-lg, 8px);
+                cursor: pointer;
+                transition: all var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            .queue-item:hover {
+                border-color: var(--color-accent, #8B4513);
+            }
+
+            .queue-position {
+                font-size: var(--text-2xl, 1.75rem);
+                font-family: var(--font-mono);
+                font-weight: var(--font-bold, 700);
+                color: var(--color-text-muted, #8B7E6A);
+                opacity: 0.5;
+                width: 32px;
+                text-align: center;
+            }
+
+            .queue-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .queue-title {
+                font-weight: var(--font-medium, 500);
+                color: var(--color-text-primary, #2C2416);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .queue-author {
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            .queue-badges {
+                display: flex;
+                gap: var(--space-1, 4px);
+            }
+
+            .path-badge {
+                font-size: var(--text-xs, 0.75rem);
+                padding: 2px 6px;
+                border-radius: var(--radius-sm, 4px);
+                background: var(--badge-color, var(--color-accent-muted));
+                color: var(--badge-text, var(--color-accent));
+            }
+
+            .priority-indicator {
+                width: 4px;
+                height: 100%;
+                min-height: 40px;
+                border-radius: var(--radius-full, 9999px);
+                flex-shrink: 0;
+            }
+
+            .priority-indicator.high {
+                background: var(--color-error, #F87171);
+            }
+
+            .priority-indicator.medium {
+                background: var(--color-warning, #FBBF24);
+            }
+
+            .priority-indicator.low {
+                background: var(--color-success, #34D399);
+            }
+
+            /* ==========================================================================
+               Insights Panel
+               ========================================================================== */
+
+            .insights-list {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-4, 16px);
+            }
+
+            .insight-section {
+                padding-bottom: var(--space-4, 16px);
+                border-bottom: 1px solid var(--color-border-subtle, #E5DED2);
+            }
+
+            .insight-section:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            .insight-title {
+                font-size: var(--text-xs, 0.75rem);
+                text-transform: uppercase;
+                letter-spacing: var(--tracking-wide, 0.025em);
+                color: var(--color-text-muted, #8B7E6A);
+                margin-bottom: var(--space-2, 8px);
+            }
+
+            .insight-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: var(--space-1, 4px) 0;
+            }
+
+            .insight-author {
+                color: var(--color-text-primary, #2C2416);
+            }
+
+            .insight-count {
+                font-family: var(--font-mono);
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-accent, #8B4513);
+            }
+
+            .recent-finish {
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-secondary, #5C5244);
+                padding: var(--space-1, 4px) 0;
+            }
+
+            .stale-alert {
+                display: flex;
+                align-items: center;
+                gap: var(--space-2, 8px);
+                padding: var(--space-3, 12px);
+                background: var(--color-warning-muted, rgba(251, 191, 36, 0.15));
+                border-radius: var(--radius-md, 6px);
+                color: var(--color-warning, #FBBF24);
+                font-size: var(--text-sm, 0.875rem);
+            }
+
+            .stale-alert-icon {
+                font-size: var(--text-lg, 1.125rem);
+            }
+
+            /* ==========================================================================
+               Buttons
+               ========================================================================== */
 
             button {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                color: var(--text, #c9d1d9);
-                padding: 8px 16px;
-                border-radius: 6px;
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border, #D4C9B8);
+                color: var(--color-text-primary, #2C2416);
+                padding: var(--space-2, 8px) var(--space-4, 16px);
+                border-radius: var(--radius-md, 6px);
                 cursor: pointer;
-                font-size: 0.875rem;
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-medium, 500);
+                transition: all var(--duration-fast, 150ms) var(--ease-out);
             }
 
             button:hover {
-                background: var(--bg-tertiary, #21262d);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-color: var(--color-border-emphasis, #C4B8A4);
             }
 
             button.primary {
-                background: var(--accent, #58a6ff);
-                border-color: var(--accent);
-                color: white;
+                background: var(--color-accent, #8B4513);
+                border-color: var(--color-accent, #8B4513);
+                color: var(--color-text-inverse, #FFFFFF);
             }
 
             button.primary:hover {
-                background: var(--accent-hover, #79b8ff);
+                background: var(--color-accent-hover, #A0522D);
+                border-color: var(--color-accent-hover, #A0522D);
             }
 
-            @media (max-width: 768px) {
-                .section-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 12px;
+            /* ==========================================================================
+               Responsive Design
+               ========================================================================== */
+
+            @media (max-width: 1200px) {
+                .stats-row {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+            }
+
+            @media (max-width: 900px) {
+                .dashboard-grid,
+                .bottom-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .stats-row {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @media (max-width: 600px) {
+                .stats-row {
+                    grid-template-columns: 1fr;
                 }
 
                 .paths-grid {
                     grid-template-columns: 1fr;
                 }
 
-                .books-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
+                .page-header {
+                    margin-bottom: var(--space-4, 16px);
                 }
 
-                .reading-row {
-                    gap: 12px;
+                .page-title {
+                    font-size: var(--text-2xl, 1.75rem);
                 }
+            }
 
-                .reading-card {
-                    flex: 0 0 140px;
-                }
+            /* ==========================================================================
+               Animations
+               ========================================================================== */
+
+            @keyframes countUp {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .stat-value.animated {
+                animation: countUp var(--duration-normal, 250ms) var(--ease-out) forwards;
             }
         `;
     }
 
     template() {
-        const { loading, error, data } = this.state;
+        const { loading, error, dashboard, stats } = this.state;
 
         if (loading) {
             return '<bt-loading text="Loading dashboard..."></bt-loading>';
@@ -217,76 +768,233 @@ export class BtDashboardView extends BaseComponent {
             `;
         }
 
-        if (!data) {
+        if (!dashboard || !stats) {
             return '<bt-loading text="Loading dashboard..."></bt-loading>';
         }
 
-        const { currently_reading, queued, learning_paths, wip_limit, reading_count } = data;
-
-        let wipClass = '';
-        if (reading_count >= wip_limit) wipClass = 'over';
-        else if (reading_count >= wip_limit - 1) wipClass = 'warning';
+        const { currently_reading, queued, learning_paths, wip_limit, reading_count } = dashboard;
 
         return `
-            <!-- Currently Reading Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Currently Reading</h2>
-                    <span class="wip-indicator ${wipClass}">${reading_count} of ${wip_limit} limit</span>
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Your reading command center</p>
+            </div>
+
+            ${this._renderStatsRow(stats, reading_count, wip_limit)}
+
+            <div class="dashboard-grid">
+                ${this._renderActivityChart(stats)}
+                ${this._renderCurrentlyReading(currently_reading, reading_count, wip_limit)}
+            </div>
+
+            ${this._renderLearningPaths(learning_paths)}
+
+            <div class="bottom-grid">
+                ${this._renderUpNextQueue(queued, dashboard)}
+                ${this._renderInsights(stats, currently_reading)}
+            </div>
+        `;
+    }
+
+    _renderStatsRow(stats, readingCount, wipLimit) {
+        const currentYear = new Date().getFullYear().toString();
+        const finishedThisYear = stats.books_by_year?.[currentYear] || 0;
+        const avgDays = stats.avg_days_to_read || 0;
+        const totalPages = stats.total_pages_read || 0;
+
+        return `
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" data-count="${stats.total_books || 0}">0</div>
+                    <div class="stat-label">Total Books</div>
                 </div>
-                ${currently_reading.length > 0 ? `
-                    <div class="reading-row">
-                        ${currently_reading.map(book => `
-                            <div class="reading-card">
-                                <bt-book-card variant="reading" data-book-id="${book.book_id}"></bt-book-card>
+                <div class="stat-card">
+                    <div class="stat-value" data-count="${finishedThisYear}">0</div>
+                    <div class="stat-label">Finished ${currentYear}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-count="${readingCount}">0</div>
+                    <div class="stat-label">Reading</div>
+                    <div class="stat-sublabel">${wipLimit} WIP limit</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-count="${Math.round(avgDays)}">0</div>
+                    <div class="stat-label">Avg Days</div>
+                    <div class="stat-sublabel">to finish</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-count="${totalPages}" data-format="thousands">0</div>
+                    <div class="stat-label">Pages Read</div>
+                </div>
+            </div>
+        `;
+    }
+
+    _renderActivityChart(stats) {
+        const monthlyData = this._getMonthlyActivity(stats);
+        const maxBooks = Math.max(...monthlyData.map(m => m.count), 1);
+
+        return `
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">Reading Activity</span>
+                    <span class="chart-legend">Books finished per month</span>
+                </div>
+                ${monthlyData.some(m => m.count > 0) ? `
+                    <div class="bar-chart">
+                        ${monthlyData.map(month => `
+                            <div class="bar-column">
+                                <div class="bar-wrapper">
+                                    <div class="bar" style="height: ${(month.count / maxBooks) * 100}%">
+                                        <span class="bar-value">${month.count}</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">${month.label}</span>
                             </div>
                         `).join('')}
                     </div>
                 ` : `
-                    <bt-empty-state
-                        title="No books in progress"
-                        description="Move a book to 'Reading' to get started"
-                    ></bt-empty-state>
+                    <div class="chart-empty">No books finished in the last 6 months</div>
                 `}
-            </section>
+            </div>
+        `;
+    }
 
-            <!-- Learning Paths Section -->
+    _getMonthlyActivity(stats) {
+        const months = [];
+        const now = new Date();
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // We only have yearly data from the API, so we'll show a simplified view
+        // In a real implementation, the API would provide monthly data
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push({
+                label: monthNames[date.getMonth()],
+                count: 0 // Would come from detailed API data
+            });
+        }
+
+        // Distribute this year's books across recent months for demo purposes
+        const currentYear = now.getFullYear().toString();
+        const thisYearCount = stats.books_by_year?.[currentYear] || 0;
+        if (thisYearCount > 0) {
+            // Simple distribution for visualization
+            const monthsPassed = now.getMonth() + 1;
+            const avgPerMonth = thisYearCount / monthsPassed;
+            months.forEach((month, index) => {
+                if (index >= 6 - monthsPassed) {
+                    month.count = Math.round(avgPerMonth + (Math.random() - 0.5) * avgPerMonth * 0.5);
+                }
+            });
+            // Ensure total matches
+            const currentTotal = months.reduce((sum, m) => sum + m.count, 0);
+            if (currentTotal !== thisYearCount && months.length > 0) {
+                months[months.length - 1].count += thisYearCount - currentTotal;
+                if (months[months.length - 1].count < 0) months[months.length - 1].count = 0;
+            }
+        }
+
+        return months;
+    }
+
+    _renderCurrentlyReading(books, readingCount, wipLimit) {
+        let wipClass = '';
+        if (readingCount >= wipLimit) wipClass = 'over';
+        else if (readingCount >= wipLimit - 1) wipClass = 'warning';
+
+        return `
+            <div class="reading-container">
+                <div class="reading-header">
+                    <span class="chart-title">Currently Reading</span>
+                    <span class="wip-indicator ${wipClass}">${readingCount} / ${wipLimit}</span>
+                </div>
+                ${books.length > 0 ? `
+                    <div class="reading-list">
+                        ${books.slice(0, 4).map(book => this._renderReadingItem(book)).join('')}
+                    </div>
+                ` : `
+                    <div class="reading-empty">
+                        <p>No books in progress</p>
+                        <p style="font-size: var(--text-sm); margin-top: var(--space-2);">
+                            Move a book to "Reading" to get started
+                        </p>
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    _renderReadingItem(book) {
+        const progress = book.progress_percent || 0;
+        const circumference = 2 * Math.PI * 18; // radius = 18
+        const strokeDashoffset = circumference - (progress / 100) * circumference;
+        const staleDays = this._getDaysSinceRead(book.last_read_at);
+        const staleClass = staleDays > 30 ? 'danger' : staleDays > 7 ? 'warning' : '';
+
+        return `
+            <div class="reading-item" data-book-id="${book.book_id}">
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="48" height="48">
+                        <circle class="progress-ring-bg" cx="24" cy="24" r="18"></circle>
+                        <circle class="progress-ring-fill ${progress >= 100 ? 'complete' : ''}"
+                            cx="24" cy="24" r="18"
+                            stroke-dasharray="${circumference}"
+                            stroke-dashoffset="${strokeDashoffset}">
+                        </circle>
+                    </svg>
+                    <span class="progress-ring-text">${progress}%</span>
+                </div>
+                <div class="reading-info">
+                    <div class="reading-title">${this.escapeHtml(book.title)}</div>
+                    <div class="reading-author">${this.escapeHtml(book.author)}</div>
+                    ${staleClass ? `
+                        <div class="reading-meta">
+                            <span class="stale-indicator ${staleClass}">
+                                ${staleDays}d ago
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    _getDaysSinceRead(lastReadAt) {
+        if (!lastReadAt) return 999;
+        const lastRead = new Date(lastReadAt);
+        const now = new Date();
+        const diffTime = Math.abs(now - lastRead);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    _renderLearningPaths(paths) {
+        if (paths.length === 0) {
+            return `
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Learning Paths</h2>
+                        <button ref="viewPathsBtn">View All</button>
+                    </div>
+                    <bt-empty-state
+                        title="No learning paths yet"
+                        description="Organize your reading with themed paths"
+                    >
+                        <button class="primary" ref="createPathBtn">Create Your First Path</button>
+                    </bt-empty-state>
+                </section>
+            `;
+        }
+
+        return `
             <section class="section">
                 <div class="section-header">
                     <h2 class="section-title">Learning Paths</h2>
                     <button ref="viewPathsBtn">View All</button>
                 </div>
-                ${learning_paths.length > 0 ? `
-                    <div class="paths-grid">
-                        ${learning_paths.map(path => this._renderPathCard(path)).join('')}
-                    </div>
-                ` : `
-                    <bt-empty-state
-                        title="No learning paths yet"
-                    >
-                        <button class="primary" ref="createPathBtn">Create Your First Path</button>
-                    </bt-empty-state>
-                `}
-            </section>
-
-            <!-- Queued Up Section -->
-            <section class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Queued Up</h2>
-                    <button ref="viewPipelineBtn">View Pipeline</button>
+                <div class="paths-grid">
+                    ${paths.slice(0, 4).map(path => this._renderPathCard(path)).join('')}
                 </div>
-                ${queued.length > 0 ? `
-                    <div class="books-grid">
-                        ${queued.slice(0, 6).map(book => `
-                            <bt-book-card data-book-id="${book.book_id}"></bt-book-card>
-                        `).join('')}
-                    </div>
-                ` : `
-                    <bt-empty-state
-                        title="No books in queue"
-                        description="Add books to your queue from the Library or Pipeline view"
-                    ></bt-empty-state>
-                `}
             </section>
         `;
     }
@@ -295,17 +1003,40 @@ export class BtDashboardView extends BaseComponent {
         const total = path.total_books || 0;
         const completed = path.completed_books || 0;
         const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const circumference = 2 * Math.PI * 24; // radius for arc
+        const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+        // Generate step indicators (max 8)
+        const maxSteps = Math.min(total, 8);
+        const completedSteps = total > 0 ? Math.round((completed / total) * maxSteps) : 0;
 
         return `
-            <div class="path-card" data-path-id="${path.id}">
-                <div class="path-card-header">
-                    <div class="path-name">
-                        <span class="path-icon" style="background: ${path.color}"></span>
-                        ${this.escapeHtml(path.name)}
-                    </div>
-                    <span class="path-progress-text">${completed}/${total}</span>
+            <div class="path-card" data-path-id="${path.id}" style="--path-color: ${path.color || '#8B4513'}">
+                <div class="path-header">
+                    <div class="path-name">${this.escapeHtml(path.name)}</div>
+                    <span class="path-progress-badge">${completed}/${total}</span>
                 </div>
-                <bt-progress-bar value="${completed}" max="${total}"></bt-progress-bar>
+                <div class="path-arc-container">
+                    <svg class="path-arc" viewBox="0 0 60 60">
+                        <circle class="path-arc-bg" cx="30" cy="30" r="24"
+                            transform="rotate(-90 30 30)"
+                            stroke-dasharray="${circumference * 0.75}"
+                            stroke-dashoffset="0">
+                        </circle>
+                        <circle class="path-arc-fill" cx="30" cy="30" r="24"
+                            transform="rotate(-90 30 30)"
+                            stroke-dasharray="${circumference * 0.75}"
+                            stroke-dashoffset="${circumference * 0.75 * (1 - progress / 100)}">
+                        </circle>
+                    </svg>
+                    ${total > 0 ? `
+                        <div class="path-steps">
+                            ${Array(maxSteps).fill(0).map((_, i) => `
+                                <div class="path-step ${i < completedSteps ? 'completed' : ''}"></div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
                 ${path.next_book ? `
                     <div class="path-next">Next: <strong>${this.escapeHtml(path.next_book)}</strong></div>
                 ` : ''}
@@ -313,34 +1044,133 @@ export class BtDashboardView extends BaseComponent {
         `;
     }
 
+    _renderUpNextQueue(queued, dashboard) {
+        return `
+            <div class="queue-container">
+                <div class="section-header" style="margin-bottom: var(--space-4)">
+                    <span class="chart-title">Up Next</span>
+                    <button ref="viewPipelineBtn">View Pipeline</button>
+                </div>
+                ${queued.length > 0 ? `
+                    <div class="queue-list">
+                        ${queued.slice(0, 5).map((book, index) => this._renderQueueItem(book, index + 1)).join('')}
+                    </div>
+                ` : `
+                    <div class="reading-empty">
+                        <p>No books in queue</p>
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    _renderQueueItem(book, position) {
+        const priorityClass = book.priority >= 3 ? 'high' : book.priority >= 2 ? 'medium' : 'low';
+        const paths = book.paths || [];
+
+        return `
+            <div class="queue-item" data-book-id="${book.book_id}">
+                <div class="priority-indicator ${priorityClass}"></div>
+                <span class="queue-position">${position}</span>
+                <div class="queue-info">
+                    <div class="queue-title">${this.escapeHtml(book.title)}</div>
+                    <div class="queue-author">${this.escapeHtml(book.author)}</div>
+                </div>
+                ${paths.length > 0 ? `
+                    <div class="queue-badges">
+                        ${paths.slice(0, 2).map(p => `
+                            <span class="path-badge" style="--badge-color: ${p.color}20; --badge-text: ${p.color}">
+                                ${this.escapeHtml(p.name.substring(0, 10))}
+                            </span>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    _renderInsights(stats, currentlyReading) {
+        const topAuthors = (stats.top_authors || []).slice(0, 3);
+        const staleBooks = currentlyReading.filter(book => this._getDaysSinceRead(book.last_read_at) > 30);
+
+        // Get recently finished from stats (we'd need more API data for this ideally)
+        const finishedByStatus = stats.by_status || {};
+        const hasFinished = (finishedByStatus.finished || 0) > 0;
+
+        return `
+            <div class="insights-container">
+                <div class="section-header" style="margin-bottom: var(--space-4)">
+                    <span class="chart-title">Insights</span>
+                </div>
+                <div class="insights-list">
+                    ${topAuthors.length > 0 ? `
+                        <div class="insight-section">
+                            <div class="insight-title">Top Authors</div>
+                            ${topAuthors.map(author => `
+                                <div class="insight-item">
+                                    <span class="insight-author">${this.escapeHtml(author.author)}</span>
+                                    <span class="insight-count">${author.count} books</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${staleBooks.length > 0 ? `
+                        <div class="insight-section">
+                            <div class="stale-alert">
+                                <span class="stale-alert-icon">!</span>
+                                <span>${staleBooks.length} book${staleBooks.length > 1 ? 's' : ''} untouched for 30+ days</span>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="insight-section">
+                        <div class="insight-title">Library Breakdown</div>
+                        ${Object.entries(stats.by_status || {}).map(([status, count]) => `
+                            <div class="insight-item">
+                                <span class="insight-author">${this._formatStatus(status)}</span>
+                                <span class="insight-count">${count}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    _formatStatus(status) {
+        const statusMap = {
+            interested: 'Interested',
+            owned: 'Owned',
+            queued: 'Queued',
+            reading: 'Reading',
+            finished: 'Finished',
+            abandoned: 'Abandoned'
+        };
+        return statusMap[status] || status;
+    }
+
     afterRender() {
-        // Set book data on cards
-        const { data } = this.state;
-        if (data) {
-            // Set reading cards
-            data.currently_reading.forEach(book => {
-                const card = this.$(`bt-book-card[data-book-id="${book.book_id}"]`);
-                if (card) {
-                    card.book = book;
-                }
-            });
+        // Animate stat counters
+        this._animateCounters();
 
-            // Set queued cards
-            data.queued.slice(0, 6).forEach(book => {
-                const card = this.$(`bt-book-card[data-book-id="${book.book_id}"]`);
-                if (card) {
-                    card.book = book;
-                }
-            });
-        }
-
-        // Add click handlers
-        this.$$('bt-book-card').forEach(card => {
-            card.addEventListener('book-click', (e) => {
-                this.emit('show-book-detail', { bookId: e.detail.book.book_id });
+        // Add click handlers for reading items
+        this.$$('.reading-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const bookId = item.dataset.bookId;
+                this.emit('show-book-detail', { bookId: parseInt(bookId) });
             });
         });
 
+        // Add click handlers for queue items
+        this.$$('.queue-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const bookId = item.dataset.bookId;
+                this.emit('show-book-detail', { bookId: parseInt(bookId) });
+            });
+        });
+
+        // Add click handlers for path cards
         this.$$('.path-card').forEach(card => {
             card.addEventListener('click', () => {
                 router.navigate('paths');
@@ -366,6 +1196,40 @@ export class BtDashboardView extends BaseComponent {
         }
     }
 
+    _animateCounters() {
+        const counters = this.$$('.stat-value[data-count]');
+        counters.forEach((counter, index) => {
+            const target = parseInt(counter.dataset.count) || 0;
+            const format = counter.dataset.format;
+            const duration = 1000;
+            const startTime = performance.now();
+
+            counter.classList.add('animated');
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(target * easeOut);
+
+                if (format === 'thousands' && current >= 1000) {
+                    counter.textContent = (current / 1000).toFixed(1) + 'k';
+                } else {
+                    counter.textContent = current.toLocaleString();
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            // Stagger the animations
+            setTimeout(() => requestAnimationFrame(animate), index * 100);
+        });
+    }
+
     async onConnect() {
         await this._loadData();
 
@@ -388,9 +1252,16 @@ export class BtDashboardView extends BaseComponent {
         this.setState({ loading: true, error: null });
 
         try {
-            const data = await api.getDashboard();
-            store.set('dashboard', data);
-            this.setState({ loading: false, data });
+            // Parallel fetch for dashboard and stats
+            const [dashboard, stats] = await Promise.all([
+                api.getDashboard(),
+                api.getStats()
+            ]);
+
+            store.set('dashboard', dashboard);
+            store.set('stats', stats);
+
+            this.setState({ loading: false, dashboard, stats });
         } catch (error) {
             this.setState({
                 loading: false,

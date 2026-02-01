@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#58a6ff">
+    <meta name="theme-color" content="#8B4513">
     <meta name="description" content="Track your reading progress, manage your library, and organize learning paths">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,9 +16,16 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='24'>📚</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230d1117'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='100'>📚</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23FAF7F2'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='100'>📚</text></svg>">
+
+    <!-- Google Fonts: Crimson Pro (serif) + IBM Plex Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/animations.css">
     <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/components.css">
 
@@ -34,16 +41,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: var(--bg);
-            color: var(--text-muted);
+            min-height: calc(100vh - 64px);
+            background: var(--color-bg-primary, #FAF7F2);
+            color: var(--color-text-muted, #8B7E6A);
         }
 
         .initial-loading .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid var(--bg-tertiary);
-            border-top-color: var(--accent);
+            border: 3px solid var(--color-bg-tertiary, #EDE6DB);
+            border-top-color: var(--color-accent, #8B4513);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-right: 16px;
@@ -61,11 +68,11 @@
     </style>
 </head>
 <body>
+    <!-- Navigation (sticky position) -->
+    <bt-nav></bt-nav>
+
     <!-- App Shell -->
     <bt-app-shell>
-        <!-- Navigation (in header slot) -->
-        <bt-nav slot="header"></bt-nav>
-
         <!-- View Container -->
         <div id="view-container">
             <div class="initial-loading">
@@ -89,7 +96,7 @@
 
     <!-- No-JS Fallback -->
     <noscript>
-        <div style="text-align: center; padding: 40px; background: var(--bg); color: var(--text);">
+        <div style="text-align: center; padding: 40px; background: var(--color-bg-primary); color: var(--color-text-primary);">
             <h1>JavaScript Required</h1>
             <p>Book Tracker requires JavaScript to run. Please enable JavaScript in your browser settings.</p>
         </div>

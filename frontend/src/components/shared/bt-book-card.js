@@ -1,5 +1,7 @@
 /**
  * bt-book-card - Book display card with multiple variants
+ *
+ * Polished with layered shadows, hover effects, and smooth transitions.
  */
 
 import { BaseComponent, defineComponent } from '../../core/base-component.js';
@@ -39,53 +41,77 @@ export class BtBookCard extends BaseComponent {
             }
 
             .book-card {
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                border-radius: 8px;
+                background: var(--color-surface, #FFFFFF);
+                border: 1px solid var(--color-border, #D4C9B8);
+                border-radius: var(--radius-xl, 12px);
                 overflow: hidden;
-                transition: transform 0.2s, box-shadow 0.2s;
                 cursor: pointer;
+                transition: transform var(--duration-normal, 250ms) var(--ease-out),
+                            box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                            border-color var(--duration-normal, 250ms) var(--ease-out);
             }
 
             .book-card:hover {
+                transform: translateY(-4px);
+                border-color: var(--color-accent, #8B4513);
+                box-shadow: var(--shadow-card-hover,
+                    0 8px 16px -4px rgba(44, 36, 22, 0.12),
+                    0 4px 8px -2px rgba(44, 36, 22, 0.08),
+                    0 0 0 1px rgba(139, 69, 19, 0.1));
+            }
+
+            .book-card:active {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+
+            /* Cover image hover effect */
+            .book-card bt-book-cover {
+                transition: filter var(--duration-normal, 250ms) var(--ease-out);
+                filter: grayscale(15%) brightness(0.95);
+            }
+
+            .book-card:hover bt-book-cover {
+                filter: grayscale(0%) brightness(1);
             }
 
             .book-info {
-                padding: 12px;
+                padding: var(--space-3, 12px);
             }
 
             .book-title {
-                font-weight: 600;
-                font-size: 0.875rem;
-                margin-bottom: 4px;
+                font-weight: var(--font-semibold, 600);
+                font-size: var(--text-sm, 0.875rem);
+                margin-bottom: var(--space-1, 4px);
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
-                color: var(--text, #c9d1d9);
+                color: var(--color-text-primary, #2C2416);
+                line-height: var(--leading-snug, 1.375);
             }
 
             .book-author {
-                font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
-                margin-bottom: 8px;
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+                margin-bottom: var(--space-2, 8px);
             }
 
             .book-meta {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                font-size: 0.75rem;
-                color: var(--text-muted, #8b949e);
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
             }
 
             .book-rating {
-                color: var(--yellow, #d29922);
+                color: var(--color-warning, #B8860B);
+                font-family: var(--font-mono);
             }
 
-            /* Reading card variant */
+            /* ================================================================
+               Reading card variant
+               ================================================================ */
             :host([variant="reading"]) .book-card {
                 flex: 0 0 160px;
             }
@@ -95,11 +121,11 @@ export class BtBookCard extends BaseComponent {
             }
 
             :host([variant="reading"]) .book-info {
-                padding: 10px;
+                padding: var(--space-3, 12px);
             }
 
             :host([variant="reading"]) .book-title {
-                font-size: 0.8rem;
+                font-size: var(--text-sm, 0.875rem);
                 -webkit-line-clamp: 1;
             }
 
@@ -107,61 +133,80 @@ export class BtBookCard extends BaseComponent {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                font-size: 0.7rem;
-                color: var(--text-muted, #8b949e);
-                margin-top: 4px;
-                margin-bottom: 6px;
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+                margin-top: var(--space-1, 4px);
+                margin-bottom: var(--space-2, 8px);
+            }
+
+            .progress-percent {
+                font-family: var(--font-mono);
+                color: var(--color-accent, #8B4513);
+                font-weight: var(--font-medium, 500);
             }
 
             .stale-indicator {
-                font-size: 0.65rem;
-                padding: 2px 6px;
-                border-radius: 4px;
-                background: rgba(248, 81, 73, 0.2);
-                color: var(--red, #f85149);
+                font-size: var(--text-xs, 0.75rem);
+                padding: var(--space-1, 4px) var(--space-2, 8px);
+                border-radius: var(--radius-sm, 4px);
+                background: var(--color-error-muted, rgba(160, 82, 45, 0.15));
+                color: var(--color-error, #A0522D);
+                font-weight: var(--font-medium, 500);
             }
 
             .path-badge {
-                font-size: 0.65rem;
-                padding: 2px 6px;
-                border-radius: 4px;
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text-muted, #8b949e);
-                margin-top: 4px;
+                font-size: var(--text-xs, 0.75rem);
+                padding: var(--space-1, 4px) var(--space-2, 8px);
+                border-radius: var(--radius-sm, 4px);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-secondary, #5C5244);
+                margin-top: var(--space-2, 8px);
                 display: inline-block;
+                border-left: 2px solid;
             }
 
-            /* Pipeline card variant */
+            /* ================================================================
+               Pipeline card variant
+               ================================================================ */
             :host([variant="pipeline"]) .book-card {
-                background: var(--bg-tertiary, #21262d);
-                padding: 10px;
+                background: var(--color-bg-tertiary, #EDE6DB);
+                padding: var(--space-3, 12px);
                 cursor: grab;
+                border-radius: var(--radius-lg, 8px);
             }
 
             :host([variant="pipeline"]) .book-card:hover {
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                box-shadow: var(--shadow-md,
+                    0 4px 6px -1px rgba(44, 36, 22, 0.1),
+                    0 2px 4px -1px rgba(44, 36, 22, 0.06));
                 transform: none;
             }
 
             :host([variant="pipeline"]) .book-card.dragging {
-                opacity: 0.5;
+                opacity: 0.6;
                 cursor: grabbing;
+                transform: rotate(2deg) scale(1.02);
+                box-shadow: var(--shadow-xl,
+                    0 20px 25px -5px rgba(44, 36, 22, 0.1),
+                    0 10px 10px -5px rgba(44, 36, 22, 0.04));
             }
 
             :host([variant="pipeline"]) .book-card.drag-over {
-                border-color: var(--accent, #58a6ff);
-                box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+                border-color: var(--color-accent, #8B4513);
+                box-shadow: 0 0 0 2px var(--color-accent-muted, rgba(139, 69, 19, 0.15));
             }
 
             .pipeline-layout {
                 display: flex;
-                gap: 10px;
+                gap: var(--space-3, 12px);
             }
 
             .pipeline-cover {
                 width: 50px;
                 height: 75px;
                 flex-shrink: 0;
+                border-radius: var(--radius-sm, 4px);
+                overflow: hidden;
             }
 
             .pipeline-info {
@@ -170,44 +215,53 @@ export class BtBookCard extends BaseComponent {
             }
 
             .pipeline-title {
-                font-size: 0.8rem;
-                font-weight: 600;
-                margin-bottom: 2px;
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-semibold, 600);
+                margin-bottom: var(--space-1, 4px);
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
+                color: var(--color-text-primary, #2C2416);
+                line-height: var(--leading-snug, 1.375);
             }
 
             .pipeline-author {
-                font-size: 0.7rem;
-                color: var(--text-muted, #8b949e);
-                margin-bottom: 6px;
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
+                margin-bottom: var(--space-2, 8px);
             }
 
             .pipeline-meta {
                 display: flex;
-                gap: 6px;
+                gap: var(--space-2, 8px);
                 flex-wrap: wrap;
+                align-items: center;
             }
 
             .pipeline-progress {
-                font-size: 0.7rem;
-                color: var(--accent, #58a6ff);
+                font-size: var(--text-xs, 0.75rem);
+                font-family: var(--font-mono);
+                color: var(--color-accent, #8B4513);
+                font-weight: var(--font-medium, 500);
             }
 
             .path-tag {
-                font-size: 0.65rem;
-                padding: 2px 6px;
-                border-radius: 4px;
-                background: var(--bg-secondary, #161b22);
+                font-size: var(--text-xs, 0.75rem);
+                padding: var(--space-1, 4px) var(--space-2, 8px);
+                border-radius: var(--radius-sm, 4px);
+                background: var(--color-bg-secondary, #F5F0E8);
+                color: var(--color-text-secondary, #5C5244);
+                border-left: 2px solid;
             }
 
-            /* Compact variant */
+            /* ================================================================
+               Compact variant
+               ================================================================ */
             :host([variant="compact"]) .book-card {
                 display: flex;
-                gap: 12px;
-                padding: 10px;
+                gap: var(--space-3, 12px);
+                padding: var(--space-3, 12px);
             }
 
             :host([variant="compact"]) bt-book-cover {
@@ -223,12 +277,38 @@ export class BtBookCard extends BaseComponent {
             }
 
             :host([variant="compact"]) .book-title {
-                font-size: 0.8rem;
+                font-size: var(--text-sm, 0.875rem);
                 -webkit-line-clamp: 1;
             }
 
             :host([variant="compact"]) .book-author {
-                margin-bottom: 4px;
+                margin-bottom: var(--space-1, 4px);
+            }
+
+            /* ================================================================
+               Staggered entrance animation support
+               ================================================================ */
+            :host([data-stagger-index]) .book-card {
+                opacity: 0;
+                animation: cardSlideUp var(--duration-normal, 250ms) var(--ease-out) forwards;
+            }
+
+            :host([data-stagger-index="0"]) .book-card { animation-delay: 0ms; }
+            :host([data-stagger-index="1"]) .book-card { animation-delay: 50ms; }
+            :host([data-stagger-index="2"]) .book-card { animation-delay: 100ms; }
+            :host([data-stagger-index="3"]) .book-card { animation-delay: 150ms; }
+            :host([data-stagger-index="4"]) .book-card { animation-delay: 200ms; }
+            :host([data-stagger-index="5"]) .book-card { animation-delay: 250ms; }
+
+            @keyframes cardSlideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
         `;
     }
@@ -283,7 +363,7 @@ export class BtBookCard extends BaseComponent {
         const isStale = book.is_stale === 1;
 
         const pathBadge = book.paths && book.paths.length > 0
-            ? `<span class="path-badge" style="border-left: 2px solid ${book.paths[0].color}">${this.escapeHtml(book.paths[0].name)}</span>`
+            ? `<span class="path-badge" style="border-left-color: ${book.paths[0].color}">${this.escapeHtml(book.paths[0].name)}</span>`
             : '';
 
         return `
@@ -295,7 +375,7 @@ export class BtBookCard extends BaseComponent {
                 <div class="book-info">
                     <div class="book-title">${this.escapeHtml(book.title)}</div>
                     <div class="progress-info">
-                        <span>${progress}%</span>
+                        <span class="progress-percent">${progress}%</span>
                         ${isStale ? '<span class="stale-indicator">Stale</span>' : ''}
                     </div>
                     <bt-progress-bar value="${progress}"></bt-progress-bar>
@@ -311,7 +391,7 @@ export class BtBookCard extends BaseComponent {
         const isStale = book.is_stale === 1;
 
         const pathTags = book.paths && book.paths.length > 0
-            ? book.paths.map(p => `<span class="path-tag" style="border-left: 2px solid ${p.color}">${this.escapeHtml(p.name)}</span>`).join('')
+            ? book.paths.map(p => `<span class="path-tag" style="border-left-color: ${p.color}">${this.escapeHtml(p.name)}</span>`).join('')
             : '';
 
         return `

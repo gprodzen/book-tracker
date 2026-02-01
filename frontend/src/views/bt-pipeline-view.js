@@ -1,5 +1,7 @@
 /**
  * bt-pipeline-view - Kanban-style pipeline view with drag-and-drop
+ *
+ * Polished with gradient headers, smooth drag states, and refined styling.
  */
 
 import { BaseComponent, defineComponent } from '../core/base-component.js';
@@ -28,12 +30,28 @@ export class BtPipelineView extends BaseComponent {
                 display: block;
             }
 
+            .page-header {
+                margin-bottom: var(--space-6, 24px);
+            }
+
+            .page-title {
+                font-size: var(--text-2xl, 1.75rem);
+                font-weight: var(--font-bold, 700);
+                color: var(--color-text-primary, #2C2416);
+                margin-bottom: var(--space-2, 8px);
+            }
+
+            .page-subtitle {
+                font-size: var(--text-sm, 0.875rem);
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
             .pipeline {
                 display: flex;
-                gap: 16px;
+                gap: var(--space-4, 16px);
                 overflow-x: auto;
-                padding-bottom: 16px;
-                min-height: calc(100vh - 180px);
+                padding-bottom: var(--space-4, 16px);
+                min-height: calc(100vh - 220px);
             }
 
             .pipeline::-webkit-scrollbar {
@@ -41,82 +59,175 @@ export class BtPipelineView extends BaseComponent {
             }
 
             .pipeline::-webkit-scrollbar-track {
-                background: var(--bg, #0d1117);
+                background: var(--color-bg-primary, #FAF7F2);
+                border-radius: var(--radius-full, 9999px);
             }
 
             .pipeline::-webkit-scrollbar-thumb {
-                background: var(--bg-tertiary, #21262d);
-                border-radius: 4px;
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-radius: var(--radius-full, 9999px);
+            }
+
+            .pipeline::-webkit-scrollbar-thumb:hover {
+                background: var(--color-border, #D4C9B8);
             }
 
             .column {
-                flex: 0 0 280px;
-                background: var(--bg-secondary, #161b22);
-                border: 1px solid var(--border, #30363d);
-                border-radius: 8px;
+                flex: 0 0 300px;
+                background: var(--color-bg-secondary, #F5F0E8);
+                border: 1px solid var(--color-border-subtle, #E5DED2);
+                border-radius: var(--radius-xl, 12px);
                 display: flex;
                 flex-direction: column;
-                max-height: calc(100vh - 180px);
+                max-height: calc(100vh - 220px);
+                overflow: hidden;
             }
 
             .column-header {
-                padding: 12px 16px;
-                border-bottom: 1px solid var(--border, #30363d);
+                padding: var(--space-4, 16px);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 position: sticky;
                 top: 0;
-                background: var(--bg-secondary, #161b22);
-                border-radius: 8px 8px 0 0;
+                background: linear-gradient(
+                    180deg,
+                    var(--color-bg-secondary, #F5F0E8) 0%,
+                    rgba(245, 240, 232, 0.95) 100%
+                );
+                border-bottom: 1px solid var(--color-border-subtle, #E5DED2);
+                border-radius: var(--radius-xl, 12px) var(--radius-xl, 12px) 0 0;
+                z-index: 1;
+            }
+
+            .column-title-group {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-1, 4px);
             }
 
             .column-title {
-                font-size: 0.75rem;
-                font-weight: 600;
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-semibold, 600);
                 text-transform: uppercase;
-                color: var(--text-muted, #8b949e);
+                letter-spacing: var(--tracking-wide, 0.025em);
+                color: var(--color-text-primary, #2C2416);
             }
 
             .column-subtitle {
-                font-size: 0.65rem;
-                color: var(--text-muted, #8b949e);
-                display: block;
+                font-size: var(--text-xs, 0.75rem);
+                color: var(--color-text-muted, #8B7E6A);
             }
 
             .column-count {
-                font-size: 0.75rem;
-                padding: 2px 8px;
-                border-radius: 10px;
-                background: var(--bg-tertiary, #21262d);
-                color: var(--text-muted, #8b949e);
+                font-size: var(--text-sm, 0.875rem);
+                font-family: var(--font-mono);
+                font-weight: var(--font-medium, 500);
+                padding: var(--space-1, 4px) var(--space-3, 12px);
+                border-radius: var(--radius-full, 9999px);
+                background: var(--color-bg-tertiary, #EDE6DB);
+                color: var(--color-text-secondary, #5C5244);
+                min-width: 32px;
+                text-align: center;
             }
 
             .column-count.warning {
-                background: rgba(210, 153, 34, 0.2);
-                color: var(--yellow, #d29922);
+                background: var(--color-warning-muted, rgba(251, 191, 36, 0.15));
+                color: var(--color-warning, #FBBF24);
             }
 
             .column-count.over {
-                background: rgba(248, 81, 73, 0.2);
-                color: var(--red, #f85149);
+                background: var(--color-error-muted, rgba(248, 113, 113, 0.15));
+                color: var(--color-error, #F87171);
             }
 
             .column-books {
-                padding: 12px;
+                padding: var(--space-3, 12px);
                 overflow-y: auto;
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: var(--space-2, 8px);
+                transition: background var(--duration-fast, 150ms) var(--ease-out);
             }
 
+            .column-books::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .column-books::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .column-books::-webkit-scrollbar-thumb {
+                background: var(--color-bg-tertiary, #EDE6DB);
+                border-radius: var(--radius-full, 9999px);
+            }
+
+            /* Drop zone states */
             .column-books.drag-over {
-                background: rgba(88, 166, 255, 0.05);
+                background: var(--color-accent-subtle, rgba(139, 69, 19, 0.08));
+                border: 2px dashed var(--color-accent, #8B4513);
+                border-radius: var(--radius-lg, 8px);
+                margin: var(--space-3, 12px);
+                margin-top: 0;
+            }
+
+            .column-books.drag-over::before {
+                content: 'Drop here';
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: var(--space-4, 16px);
+                color: var(--color-accent, #8B4513);
+                font-size: var(--text-sm, 0.875rem);
+                font-weight: var(--font-medium, 500);
+            }
+
+            /* Empty column state */
+            .column-empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: var(--space-8, 32px) var(--space-4, 16px);
+                text-align: center;
+                color: var(--color-text-muted, #8B7E6A);
+            }
+
+            .column-empty-icon {
+                font-size: 2rem;
+                margin-bottom: var(--space-2, 8px);
+                opacity: 0.5;
+            }
+
+            .column-empty-text {
+                font-size: var(--text-sm, 0.875rem);
             }
 
             bt-book-card {
                 display: block;
+            }
+
+            /* Column-specific accent colors */
+            .column[data-status="interested"] .column-title {
+                color: var(--color-interested, #A78BFA);
+            }
+
+            .column[data-status="owned"] .column-title {
+                color: var(--color-owned, #60A5FA);
+            }
+
+            .column[data-status="queued"] .column-title {
+                color: var(--color-queued, #34D399);
+            }
+
+            .column[data-status="reading"] .column-title {
+                color: var(--color-reading, #8B4513);
+            }
+
+            .column[data-status="finished"] .column-title {
+                color: var(--color-finished, #10B981);
             }
 
             @media (max-width: 768px) {
@@ -129,6 +240,10 @@ export class BtPipelineView extends BaseComponent {
                     flex: none;
                     width: 100%;
                     max-height: 400px;
+                }
+
+                .page-header {
+                    margin-bottom: var(--space-4, 16px);
                 }
             }
         `;
@@ -159,14 +274,18 @@ export class BtPipelineView extends BaseComponent {
         const readingCount = pipeline.reading ? pipeline.reading.length : 0;
 
         const columns = [
-            { key: 'interested', title: 'Interested', subtitle: 'wishlist' },
-            { key: 'owned', title: 'Owned', subtitle: 'purchased' },
-            { key: 'queued', title: 'Queued', subtitle: 'up next' },
-            { key: 'reading', title: 'Reading', subtitle: `${readingCount}/${wipLimit}`, isWip: true },
-            { key: 'finished', title: 'Finished', subtitle: '' }
+            { key: 'interested', title: 'Interested', subtitle: 'Wishlist', icon: '💭' },
+            { key: 'owned', title: 'Owned', subtitle: 'Purchased', icon: '📦' },
+            { key: 'queued', title: 'Queued', subtitle: 'Up next', icon: '📋' },
+            { key: 'reading', title: 'Reading', subtitle: `${readingCount}/${wipLimit} WIP`, isWip: true, icon: '📖' },
+            { key: 'finished', title: 'Finished', subtitle: 'Completed', icon: '✅' }
         ];
 
         return `
+            <div class="page-header">
+                <h1 class="page-title">Pipeline</h1>
+                <p class="page-subtitle">Drag and drop books to change their status</p>
+            </div>
             <div class="pipeline">
                 ${columns.map(col => this._renderColumn(col, pipeline[col.key] || [], wipLimit)).join('')}
             </div>
@@ -182,22 +301,30 @@ export class BtPipelineView extends BaseComponent {
             else if (count >= wipLimit - 1) countClass = 'warning';
         }
 
+        const isEmpty = books.length === 0;
+
         return `
             <div class="column" data-status="${col.key}">
                 <div class="column-header">
-                    <div>
+                    <div class="column-title-group">
                         <span class="column-title">${col.title}</span>
                         ${col.subtitle ? `<span class="column-subtitle">${col.subtitle}</span>` : ''}
                     </div>
                     <span class="column-count ${countClass}">${count}</span>
                 </div>
                 <div class="column-books" data-status="${col.key}">
-                    ${books.map(book => `
+                    ${isEmpty ? `
+                        <div class="column-empty">
+                            <span class="column-empty-icon">${col.icon}</span>
+                            <span class="column-empty-text">No books</span>
+                        </div>
+                    ` : books.map((book, index) => `
                         <bt-book-card
                             variant="pipeline"
                             data-book-id="${book.book_id}"
                             data-user-book-id="${book.user_book_id}"
                             data-status="${book.status}"
+                            data-stagger-index="${Math.min(index, 5)}"
                         ></bt-book-card>
                     `).join('')}
                 </div>
