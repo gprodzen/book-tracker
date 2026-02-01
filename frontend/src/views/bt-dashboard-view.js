@@ -1140,8 +1140,7 @@ export class BtDashboardView extends BaseComponent {
 
     _formatStatus(status) {
         const statusMap = {
-            interested: 'Interested',
-            owned: 'Owned',
+            want_to_read: 'Want to Read',
             queued: 'Queued',
             reading: 'Reading',
             finished: 'Finished',

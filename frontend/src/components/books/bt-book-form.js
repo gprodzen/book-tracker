@@ -328,8 +328,7 @@ export class BtBookForm extends BaseComponent {
                     <div class="form-group">
                         <label>Initial Status</label>
                         <select ref="confirmStatus">
-                            <option value="interested">Interested</option>
-                            <option value="owned">Owned</option>
+                            <option value="want_to_read">Want to Read</option>
                             <option value="queued">Queued</option>
                             <option value="reading">Reading</option>
                         </select>
@@ -380,8 +379,7 @@ export class BtBookForm extends BaseComponent {
                     <div class="form-group">
                         <label>Initial Status</label>
                         <select ref="manualStatus">
-                            <option value="interested">Interested</option>
-                            <option value="owned">Owned</option>
+                            <option value="want_to_read">Want to Read</option>
                             <option value="queued">Queued</option>
                             <option value="reading">Reading</option>
                         </select>

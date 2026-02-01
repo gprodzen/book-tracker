@@ -31,8 +31,8 @@ def parse_date(date_str: str) -> str | None:
 def map_shelf_to_status(shelf: str) -> str:
     """Map Goodreads shelf names to our status enum."""
     mapping = {
-        'read': 'read',
-        'currently-reading': 'currently_reading',
+        'read': 'finished',
+        'currently-reading': 'reading',
         'to-read': 'want_to_read',
     }
     return mapping.get(shelf, 'want_to_read')
@@ -119,7 +119,7 @@ def import_csv(csv_path: str, db_path: str):
             user_book_id = cursor.fetchone()[0]
 
             # Create reading session if book was read
-            if status == 'read' and parse_date(row['Date Read']):
+            if status == 'finished' and parse_date(row['Date Read']):
                 cursor.execute('''
                     INSERT INTO reading_sessions (user_book_id, finished_at)
                     VALUES (?, ?)

@@ -24,11 +24,11 @@ CREATE TABLE IF NOT EXISTS books (
 );
 
 -- User's relationship with books (reading status, personal rating)
--- Status pipeline: interested → owned → queued → reading → finished/abandoned
+-- Status pipeline: want_to_read → queued → reading → finished/abandoned
 CREATE TABLE IF NOT EXISTS user_books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
-    status TEXT CHECK(status IN ('interested', 'owned', 'queued', 'reading', 'finished', 'abandoned')) NOT NULL,
+    status TEXT CHECK(status IN ('want_to_read', 'queued', 'reading', 'finished', 'abandoned')) NOT NULL,
     my_rating INTEGER CHECK(my_rating >= 0 AND my_rating <= 5),
     date_added TIMESTAMP,
     started_reading_at TIMESTAMP,

@@ -398,7 +398,7 @@ export class BtBookDetail extends BaseComponent {
                     <div class="detail-row">
                         <span class="detail-label">Status</span>
                         <select ref="statusSelect">
-                            ${['interested', 'owned', 'queued', 'reading', 'finished', 'abandoned'].map(s =>
+                            ${['want_to_read', 'queued', 'reading', 'finished', 'abandoned'].map(s =>
                                 `<option value="${s}" ${book.status === s ? 'selected' : ''}>${this.formatStatus(s)}</option>`
                             ).join('')}
                         </select>

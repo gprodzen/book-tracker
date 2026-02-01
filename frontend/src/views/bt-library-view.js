@@ -250,8 +250,7 @@ export class BtLibraryView extends BaseComponent {
             { key: 'finished', label: 'Finished', count: stats?.by_status?.finished || 0 },
             { key: 'reading', label: 'Reading', count: stats?.by_status?.reading || 0 },
             { key: 'queued', label: 'Queued', count: stats?.by_status?.queued || 0 },
-            { key: 'owned', label: 'Owned', count: stats?.by_status?.owned || 0 },
-            { key: 'interested', label: 'Interested', count: stats?.by_status?.interested || 0 }
+            { key: 'want_to_read', label: 'Want to Read', count: stats?.by_status?.want_to_read || 0 }
         ];
 
         return statuses.map(s => `

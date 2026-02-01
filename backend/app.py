@@ -325,7 +325,7 @@ def create_book():
         book_id = cursor.lastrowid
 
     # Create user_book record
-    status = data.get('status', 'interested')
+    status = data.get('status', 'want_to_read')
     cursor = db.execute('''
         INSERT INTO user_books (
             book_id, status, date_added, priority,
@@ -751,7 +751,7 @@ def get_dashboard():
              JOIN library_view lv ON lv.user_book_id = lpb2.user_book_id
              JOIN user_books ub2 ON ub2.id = lpb2.user_book_id
              WHERE lpb2.learning_path_id = lp.id
-             AND ub2.status IN ('queued', 'reading', 'owned', 'interested')
+             AND ub2.status IN ('queued', 'reading', 'want_to_read')
              ORDER BY lpb2.position ASC
              LIMIT 1) as next_book
         FROM learning_paths lp
@@ -1086,7 +1086,7 @@ def get_pipeline():
     db = get_db()
 
     pipeline = {}
-    statuses = ['interested', 'owned', 'queued', 'reading', 'finished', 'abandoned']
+    statuses = ['want_to_read', 'queued', 'reading', 'finished', 'abandoned']
 
     for status in statuses:
         cursor = db.execute('''

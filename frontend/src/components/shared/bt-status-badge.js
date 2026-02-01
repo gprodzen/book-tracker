@@ -27,38 +27,33 @@ export class BtStatusBadge extends BaseComponent {
 
             .status-finished {
                 background: rgba(46, 125, 74, 0.15);
-                color: var(--green, #2E7D4A);
+                color: var(--color-finished, #2E7D4A);
             }
 
             .status-reading {
                 background: rgba(139, 69, 19, 0.15);
-                color: var(--accent, #8B4513);
+                color: var(--color-reading, #8B4513);
             }
 
             .status-queued {
                 background: rgba(46, 125, 74, 0.15);
-                color: var(--purple, #2E7D4A);
+                color: var(--color-queued, #2E7D4A);
             }
 
-            .status-owned {
-                background: rgba(184, 134, 11, 0.15);
-                color: var(--yellow, #B8860B);
-            }
-
-            .status-interested {
+            .status-want_to_read {
                 background: rgba(123, 92, 158, 0.15);
-                color: var(--text-muted, #7B5C9E);
+                color: var(--color-want-to-read, #7B5C9E);
             }
 
             .status-abandoned {
                 background: rgba(160, 82, 45, 0.15);
-                color: var(--red, #A0522D);
+                color: var(--color-error, #A0522D);
             }
         `;
     }
 
     template() {
-        const status = this.getAttribute('status') || 'interested';
+        const status = this.getAttribute('status') || 'want_to_read';
         const label = this.formatStatus(status);
 
         return `

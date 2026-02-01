@@ -210,16 +210,12 @@ export class BtPipelineView extends BaseComponent {
             }
 
             /* Column-specific accent colors */
-            .column[data-status="interested"] .column-title {
-                color: var(--color-interested, #A78BFA);
-            }
-
-            .column[data-status="owned"] .column-title {
-                color: var(--color-owned, #60A5FA);
+            .column[data-status="want_to_read"] .column-title {
+                color: var(--color-want-to-read, #7B5C9E);
             }
 
             .column[data-status="queued"] .column-title {
-                color: var(--color-queued, #34D399);
+                color: var(--color-queued, #2E7D4A);
             }
 
             .column[data-status="reading"] .column-title {
@@ -227,7 +223,7 @@ export class BtPipelineView extends BaseComponent {
             }
 
             .column[data-status="finished"] .column-title {
-                color: var(--color-finished, #10B981);
+                color: var(--color-finished, #2E7D4A);
             }
 
             @media (max-width: 768px) {
@@ -274,8 +270,7 @@ export class BtPipelineView extends BaseComponent {
         const readingCount = pipeline.reading ? pipeline.reading.length : 0;
 
         const columns = [
-            { key: 'interested', title: 'Interested', subtitle: 'Wishlist', icon: '💭' },
-            { key: 'owned', title: 'Owned', subtitle: 'Purchased', icon: '📦' },
+            { key: 'want_to_read', title: 'Want to Read', subtitle: 'Wishlist', icon: '💭' },
             { key: 'queued', title: 'Queued', subtitle: 'Up next', icon: '📋' },
             { key: 'reading', title: 'Reading', subtitle: `${readingCount}/${wipLimit} WIP`, isWip: true, icon: '📖' },
             { key: 'finished', title: 'Finished', subtitle: 'Completed', icon: '✅' }
@@ -338,8 +333,7 @@ export class BtPipelineView extends BaseComponent {
 
         // Set book data on all cards
         const allBooks = [
-            ...(pipeline.interested || []),
-            ...(pipeline.owned || []),
+            ...(pipeline.want_to_read || []),
             ...(pipeline.queued || []),
             ...(pipeline.reading || []),
             ...(pipeline.finished || [])

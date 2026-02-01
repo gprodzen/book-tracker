@@ -49,8 +49,7 @@
     --color-info-muted: rgba(74, 107, 138, 0.15);
 
     /* Status colors for books */
-    --color-interested: #7B5C9E;
-    --color-owned: #4A6B8A;
+    --color-want-to-read: #7B5C9E;
     --color-queued: #2E7D4A;
     --color-reading: #8B4513;
     --color-finished: #2E7D4A;

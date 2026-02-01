@@ -217,8 +217,7 @@ export class BaseComponent extends HTMLElement {
             finished: 'Finished',
             reading: 'Reading',
             queued: 'Queued',
-            owned: 'Owned',
-            interested: 'Interested',
+            want_to_read: 'Want to Read',
             abandoned: 'DNF',
         };
         return labels[status] || status;
