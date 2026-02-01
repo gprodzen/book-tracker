@@ -326,20 +326,10 @@ export class BtPipelineView extends BaseComponent {
 
     async onConnect() {
         await this._loadData();
-
-        // Subscribe to updates
-        this._unsubPipeline = events.on(EVENT_NAMES.PIPELINE_LOADED, () => {
-            this._loadData();
-        });
-
-        this._unsubBookUpdated = events.on(EVENT_NAMES.BOOK_UPDATED, () => {
-            this._loadData();
-        });
     }
 
     onDisconnect() {
-        if (this._unsubPipeline) this._unsubPipeline();
-        if (this._unsubBookUpdated) this._unsubBookUpdated();
+        // Clean up if needed
     }
 
     async _loadData() {

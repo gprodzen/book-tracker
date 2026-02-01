@@ -346,30 +346,10 @@ export class BtPathsView extends BaseComponent {
 
     async onConnect() {
         await this._loadData();
-
-        // Subscribe to updates
-        this._unsubPaths = events.on(EVENT_NAMES.PATHS_LOADED, () => {
-            this._loadData();
-        });
-
-        this._unsubPathCreated = events.on(EVENT_NAMES.PATH_CREATED, () => {
-            this._loadData();
-        });
-
-        this._unsubPathUpdated = events.on(EVENT_NAMES.PATH_UPDATED, () => {
-            this._loadData();
-        });
-
-        this._unsubPathDeleted = events.on(EVENT_NAMES.PATH_DELETED, () => {
-            this._loadData();
-        });
     }
 
     onDisconnect() {
-        if (this._unsubPaths) this._unsubPaths();
-        if (this._unsubPathCreated) this._unsubPathCreated();
-        if (this._unsubPathUpdated) this._unsubPathUpdated();
-        if (this._unsubPathDeleted) this._unsubPathDeleted();
+        // Clean up if needed
     }
 
     async _loadData() {

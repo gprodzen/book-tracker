@@ -369,14 +369,19 @@ export class BtDashboardView extends BaseComponent {
     async onConnect() {
         await this._loadData();
 
-        // Subscribe to data updates
-        this._unsubDashboard = events.on(EVENT_NAMES.DASHBOARD_LOADED, () => {
+        // Subscribe to book updates to refresh dashboard
+        this._unsubBookUpdated = events.on(EVENT_NAMES.BOOK_UPDATED, () => {
+            this._loadData();
+        });
+
+        this._unsubBookCreated = events.on(EVENT_NAMES.BOOK_CREATED, () => {
             this._loadData();
         });
     }
 
     onDisconnect() {
-        if (this._unsubDashboard) this._unsubDashboard();
+        if (this._unsubBookUpdated) this._unsubBookUpdated();
+        if (this._unsubBookCreated) this._unsubBookCreated();
     }
 
     async _loadData() {
