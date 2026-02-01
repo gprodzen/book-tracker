@@ -30,7 +30,7 @@ html {
 }
 
 body {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: var(--text-base);
     font-weight: var(--font-normal);
     background: var(--color-bg-primary);
@@ -134,7 +134,7 @@ input,
 select,
 button,
 textarea {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: var(--text-base);
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
@@ -202,21 +202,27 @@ input[type="radio"] {
 }
 
 /* ==========================================================================
-   Buttons
+   Buttons - Enhanced with spring animations
    ========================================================================== */
 
 button {
     cursor: pointer;
     font-weight: var(--font-medium);
-    transition: var(--transition-colors), transform var(--duration-fast) var(--ease-out);
+    transition:
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-spring-snappy),
+        box-shadow var(--duration-normal) var(--ease-out);
 }
 
 button:hover:not(:disabled) {
     background: var(--color-bg-tertiary);
+    transform: translateY(-1px);
 }
 
 button:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.97) translateY(0);
 }
 
 button:focus-visible {
@@ -224,7 +230,7 @@ button:focus-visible {
     box-shadow: var(--focus-ring);
 }
 
-/* Primary button */
+/* Primary button - with glow effect */
 button.primary {
     background: var(--color-accent);
     border-color: var(--color-accent);
@@ -234,6 +240,13 @@ button.primary {
 button.primary:hover:not(:disabled) {
     background: var(--color-accent-hover);
     border-color: var(--color-accent-hover);
+    box-shadow: var(--shadow-button-glow);
+    transform: translateY(-1px);
+}
+
+button.primary:active:not(:disabled) {
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
 }
 
 /* Secondary/Ghost button */
@@ -246,6 +259,11 @@ button.secondary {
 button.secondary:hover:not(:disabled) {
     background: var(--color-bg-tertiary);
     border-color: var(--color-border-emphasis);
+    transform: translateY(-1px);
+}
+
+button.secondary:active:not(:disabled) {
+    transform: scale(0.97) translateY(0);
 }
 
 /* Danger button */
@@ -257,6 +275,11 @@ button.danger {
 
 button.danger:hover:not(:disabled) {
     background: rgba(248, 113, 113, 0.25);
+    transform: translateY(-1px);
+}
+
+button.danger:active:not(:disabled) {
+    transform: scale(0.97) translateY(0);
 }
 
 /* Small button */

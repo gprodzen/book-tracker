@@ -24,25 +24,54 @@ export class BtProgressBar extends BaseComponent {
 
             .progress-bar {
                 background: var(--bg-tertiary, #EDE6DB);
-                border-radius: 4px;
+                border-radius: var(--radius-full, 9999px);
                 height: 6px;
                 overflow: hidden;
                 flex: 1;
+                position: relative;
             }
 
             .progress-bar-fill {
-                background: var(--accent, #8B4513);
+                background: linear-gradient(
+                    90deg,
+                    var(--accent, #8B4513) 0%,
+                    var(--accent-hover, #A0522D) 100%
+                );
                 height: 100%;
-                border-radius: 4px;
-                transition: width 0.3s ease;
+                border-radius: var(--radius-full, 9999px);
+                transition: width var(--duration-slow, 350ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1));
+                position: relative;
+                box-shadow: 0 1px 4px rgba(139, 69, 19, 0.2);
+            }
+
+            /* Subtle glow effect on fill */
+            .progress-bar-fill::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 20px;
+                background: linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.3) 100%
+                );
+                border-radius: var(--radius-full, 9999px);
             }
 
             .progress-bar-fill.complete {
-                background: var(--green, #2E7D4A);
+                background: linear-gradient(
+                    90deg,
+                    var(--green, #2E7D4A) 0%,
+                    #3d9960 100%
+                );
+                box-shadow: 0 1px 4px rgba(46, 125, 74, 0.25);
             }
 
             .progress-text {
                 font-size: 0.75rem;
+                font-family: var(--font-mono);
                 color: var(--text-muted, #8B7E6A);
                 min-width: 36px;
                 text-align: right;
@@ -54,6 +83,13 @@ export class BtProgressBar extends BaseComponent {
 
             :host([size="large"]) .progress-bar {
                 height: 10px;
+            }
+
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .progress-bar-fill {
+                    transition: width var(--duration-fast, 150ms) var(--ease-out);
+                }
             }
         `;
     }

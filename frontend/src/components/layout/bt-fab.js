@@ -25,50 +25,73 @@ export class BtFab extends BaseComponent {
                 gap: 8px;
                 min-width: 56px;
                 height: 56px;
-                border-radius: 28px;
-                background: var(--accent, #8B4513);
+                border-radius: var(--radius-full, 9999px);
+                background: linear-gradient(
+                    135deg,
+                    var(--accent, #8B4513) 0%,
+                    var(--accent-hover, #A0522D) 100%
+                );
                 border: none;
                 color: white;
                 font-size: 24px;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+                box-shadow:
+                    0 4px 12px rgba(139, 69, 19, 0.3),
+                    0 8px 24px rgba(139, 69, 19, 0.15);
+                transition:
+                    transform var(--duration-normal, 250ms) var(--ease-spring-bouncy, cubic-bezier(0.68, -0.55, 0.265, 1.55)),
+                    box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                    background var(--duration-fast, 150ms) var(--ease-out);
             }
 
             .fab:hover {
-                transform: scale(1.05);
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-                background: var(--accent-hover, #A0522D);
+                transform: scale(1.08);
+                box-shadow:
+                    0 6px 16px rgba(139, 69, 19, 0.35),
+                    0 12px 32px rgba(139, 69, 19, 0.2);
+                background: linear-gradient(
+                    135deg,
+                    var(--accent-hover, #A0522D) 0%,
+                    #b35a2d 100%
+                );
             }
 
             .fab:active {
-                transform: scale(0.98);
+                transform: scale(0.95);
+                transition: transform var(--duration-fast, 150ms) var(--ease-out);
+                box-shadow:
+                    0 2px 8px rgba(139, 69, 19, 0.3),
+                    0 4px 12px rgba(139, 69, 19, 0.15);
             }
 
             .fab:focus {
                 outline: none;
-                box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.3), 0 6px 16px rgba(0, 0, 0, 0.4);
+                box-shadow:
+                    0 0 0 3px rgba(139, 69, 19, 0.3),
+                    0 6px 16px rgba(139, 69, 19, 0.35),
+                    0 12px 32px rgba(139, 69, 19, 0.2);
             }
 
             :host([extended]) .fab {
-                padding: 0 20px;
-                border-radius: 28px;
+                padding: 0 24px;
+                border-radius: var(--radius-2xl, 24px);
             }
 
             .label {
                 font-size: 0.875rem;
                 font-weight: 600;
+                font-family: var(--font-body, 'Inter', sans-serif);
             }
 
             /* Mini FAB variant */
             :host([size="mini"]) .fab {
-                min-width: 40px;
-                height: 40px;
+                min-width: 44px;
+                height: 44px;
                 font-size: 18px;
             }
 
             :host([size="mini"][extended]) .fab {
-                padding: 0 16px;
+                padding: 0 18px;
             }
 
             /* Secondary color variant */
@@ -76,10 +99,16 @@ export class BtFab extends BaseComponent {
                 background: var(--bg-secondary, #F5F0E8);
                 border: 1px solid var(--border, #D4C9B8);
                 color: var(--text, #2C2416);
+                box-shadow:
+                    0 2px 8px rgba(44, 36, 22, 0.1),
+                    0 4px 16px rgba(44, 36, 22, 0.06);
             }
 
             :host([color="secondary"]) .fab:hover {
                 background: var(--bg-tertiary, #EDE6DB);
+                box-shadow:
+                    0 4px 12px rgba(44, 36, 22, 0.12),
+                    0 8px 24px rgba(44, 36, 22, 0.08);
             }
 
             /* Mobile positioning */
@@ -87,6 +116,20 @@ export class BtFab extends BaseComponent {
                 :host {
                     bottom: 16px;
                     right: 16px;
+                }
+            }
+
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .fab {
+                    transition:
+                        box-shadow var(--duration-fast, 150ms) var(--ease-out),
+                        background var(--duration-fast, 150ms) var(--ease-out);
+                }
+
+                .fab:hover,
+                .fab:active {
+                    transform: none;
                 }
             }
         `;

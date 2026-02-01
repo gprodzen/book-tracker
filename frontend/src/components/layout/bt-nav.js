@@ -30,10 +30,11 @@ export class BtNav extends BaseComponent {
                 align-items: center;
                 height: var(--nav-height, 64px);
                 padding: 0 var(--space-6, 24px);
-                background: rgba(250, 247, 242, 0.92);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-bottom: 1px solid var(--color-border-subtle, #E5DED2);
+                background: rgba(250, 247, 242, 0.85);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border-bottom: 1px solid rgba(212, 201, 184, 0.5);
+                box-shadow: 0 1px 3px rgba(44, 36, 22, 0.04);
             }
 
             .nav-brand {
@@ -65,13 +66,15 @@ export class BtNav extends BaseComponent {
             .nav-link {
                 position: relative;
                 padding: var(--space-2, 8px) var(--space-4, 16px);
-                border-radius: var(--radius-md, 6px);
+                border-radius: var(--radius-md, 10px);
                 color: var(--color-text-secondary, #5C5244);
                 text-decoration: none;
                 font-size: var(--text-sm, 0.875rem);
                 font-weight: var(--font-medium, 500);
-                transition: color var(--duration-fast, 150ms) var(--ease-out),
-                            background var(--duration-fast, 150ms) var(--ease-out);
+                transition:
+                    color var(--duration-fast, 150ms) var(--ease-out),
+                    background var(--duration-fast, 150ms) var(--ease-out),
+                    transform var(--duration-fast, 150ms) var(--ease-spring-snappy, cubic-bezier(0.175, 0.885, 0.32, 1.275));
                 cursor: pointer;
                 border: none;
                 background: none;
@@ -79,11 +82,16 @@ export class BtNav extends BaseComponent {
 
             .nav-link:hover {
                 color: var(--color-text-primary, #2C2416);
-                background: var(--color-bg-tertiary, #EDE6DB);
+                background: rgba(237, 230, 219, 0.8);
+            }
+
+            .nav-link:active {
+                transform: scale(0.97);
             }
 
             .nav-link.active {
                 color: var(--color-accent, #8B4513);
+                background: rgba(139, 69, 19, 0.08);
             }
 
             /* Animated underline for active state */
@@ -116,20 +124,28 @@ export class BtNav extends BaseComponent {
 
             .logout-btn {
                 padding: var(--space-2, 8px) var(--space-3, 12px);
-                border-radius: var(--radius-md, 6px);
+                border-radius: var(--radius-md, 10px);
                 color: var(--color-text-muted, #8B7E6A);
                 font-size: var(--text-xs, 0.75rem);
                 font-weight: var(--font-medium, 500);
                 cursor: pointer;
                 border: 1px solid var(--color-border, #D4C9B8);
                 background: transparent;
-                transition: color var(--duration-fast, 150ms) var(--ease-out),
-                            border-color var(--duration-fast, 150ms) var(--ease-out);
+                transition:
+                    color var(--duration-fast, 150ms) var(--ease-out),
+                    border-color var(--duration-fast, 150ms) var(--ease-out),
+                    background var(--duration-fast, 150ms) var(--ease-out),
+                    transform var(--duration-fast, 150ms) var(--ease-spring-snappy, cubic-bezier(0.175, 0.885, 0.32, 1.275));
             }
 
             .logout-btn:hover {
                 color: var(--color-error, #A0522D);
                 border-color: var(--color-error, #A0522D);
+                background: rgba(160, 82, 45, 0.06);
+            }
+
+            .logout-btn:active {
+                transform: scale(0.97);
             }
 
             /* Mobile hamburger button */
@@ -200,11 +216,22 @@ export class BtNav extends BaseComponent {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(250, 247, 242, 0.98);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                background: rgba(250, 247, 242, 0.95);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
                 padding: var(--space-4, 16px);
-                animation: fadeIn var(--duration-fast, 150ms) var(--ease-out);
+                animation: slideDown var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1));
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
 
             .mobile-menu.open {
@@ -220,7 +247,7 @@ export class BtNav extends BaseComponent {
             .mobile-nav-link {
                 display: block;
                 padding: var(--space-4, 16px);
-                border-radius: var(--radius-lg, 8px);
+                border-radius: var(--radius-lg, 14px);
                 color: var(--color-text-secondary, #5C5244);
                 text-decoration: none;
                 font-size: var(--text-lg, 1.125rem);
@@ -228,7 +255,9 @@ export class BtNav extends BaseComponent {
                 background: var(--color-bg-secondary, #F5F0E8);
                 border: 1px solid var(--color-border-subtle, #E5DED2);
                 cursor: pointer;
-                transition: all var(--duration-fast, 150ms) var(--ease-out);
+                transition:
+                    all var(--duration-fast, 150ms) var(--ease-out),
+                    transform var(--duration-fast, 150ms) var(--ease-spring-snappy, cubic-bezier(0.175, 0.885, 0.32, 1.275));
             }
 
             .mobile-nav-link:hover {
@@ -236,10 +265,15 @@ export class BtNav extends BaseComponent {
                 border-color: var(--color-border, #D4C9B8);
             }
 
+            .mobile-nav-link:active {
+                transform: scale(0.98);
+            }
+
             .mobile-nav-link.active {
                 color: var(--color-accent, #8B4513);
                 border-color: var(--color-accent, #8B4513);
-                border-left-width: 3px;
+                border-left-width: 4px;
+                background: rgba(139, 69, 19, 0.06);
             }
 
             .mobile-logout {

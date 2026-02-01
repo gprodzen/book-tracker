@@ -60,37 +60,50 @@ export class BtDashboardView extends BaseComponent {
             }
 
             .stat-card {
-                background: linear-gradient(
-                    135deg,
-                    var(--color-bg-secondary, #F5F0E8) 0%,
-                    var(--color-bg-tertiary, #EDE6DB) 100%
-                );
+                background: var(--color-surface, #FFFFFF);
                 border: 1px solid var(--color-border-subtle, #E5DED2);
-                border-left: 3px solid var(--color-accent, #8B4513);
-                border-radius: var(--radius-xl, 12px);
+                border-radius: var(--radius-xl, 18px);
                 padding: var(--space-5, 20px);
                 display: flex;
                 flex-direction: column;
                 gap: var(--space-2, 8px);
+                transition:
+                    transform var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)),
+                    box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                    border-color var(--duration-fast, 150ms) var(--ease-out);
+                cursor: default;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-4px) scale(1.01);
+                box-shadow: var(--shadow-card-hover,
+                    0 4px 8px rgba(44, 36, 22, 0.06),
+                    0 8px 24px rgba(44, 36, 22, 0.1),
+                    0 16px 32px rgba(44, 36, 22, 0.06));
+                border-color: var(--color-accent, #8B4513);
             }
 
             .stat-value {
-                font-size: var(--text-3xl, 2.25rem);
+                font-size: var(--text-5xl, 3rem);
                 font-weight: var(--font-bold, 700);
-                font-family: var(--font-mono);
+                font-family: var(--font-display, 'Crimson Pro', serif);
                 color: var(--color-accent, #8B4513);
                 line-height: var(--leading-none, 1);
+                letter-spacing: var(--tracking-tight, -0.025em);
             }
 
             .stat-label {
                 font-size: var(--text-sm, 0.875rem);
+                font-family: var(--font-body, 'Inter', sans-serif);
                 color: var(--color-text-muted, #8B7E6A);
                 text-transform: uppercase;
                 letter-spacing: var(--tracking-wide, 0.025em);
+                font-weight: var(--font-medium, 500);
             }
 
             .stat-sublabel {
                 font-size: var(--text-xs, 0.75rem);
+                font-family: var(--font-body, 'Inter', sans-serif);
                 color: var(--color-text-muted, #8B7E6A);
                 opacity: 0.7;
             }
@@ -190,16 +203,18 @@ export class BtDashboardView extends BaseComponent {
                     var(--color-accent, #8B4513) 0%,
                     var(--color-accent-hover, #A0522D) 100%
                 );
-                border-radius: var(--radius-sm, 4px) var(--radius-sm, 4px) 0 0;
-                transition: all var(--duration-normal, 250ms) var(--ease-out);
+                border-radius: var(--radius-md, 10px) var(--radius-md, 10px) var(--radius-sm, 6px) var(--radius-sm, 6px);
+                transition: all var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1));
                 min-height: 4px;
                 position: relative;
+                box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15);
             }
 
             .bar:hover {
                 filter: brightness(1.1);
-                transform: scaleY(1.02);
+                transform: scaleY(1.05) scaleX(1.02);
                 transform-origin: bottom;
+                box-shadow: 0 4px 12px rgba(139, 69, 19, 0.25);
             }
 
             .bar-value {
@@ -456,10 +471,13 @@ export class BtDashboardView extends BaseComponent {
             .path-card {
                 background: var(--color-surface, #FFFFFF);
                 border: 1px solid var(--color-border, #D4C9B8);
-                border-radius: var(--radius-xl, 12px);
+                border-radius: var(--radius-xl, 18px);
                 padding: var(--space-5, 20px);
                 cursor: pointer;
-                transition: all var(--duration-normal, 250ms) var(--ease-out);
+                transition:
+                    transform var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)),
+                    box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                    border-color var(--duration-fast, 150ms) var(--ease-out);
                 position: relative;
                 overflow: hidden;
             }
@@ -472,12 +490,24 @@ export class BtDashboardView extends BaseComponent {
                 bottom: 0;
                 width: 4px;
                 background: var(--path-color, var(--color-accent));
+                transition: width var(--duration-fast, 150ms) var(--ease-out);
+            }
+
+            .path-card:hover::before {
+                width: 6px;
             }
 
             .path-card:hover {
-                transform: translateY(-2px);
+                transform: translateY(-4px) scale(1.01);
                 border-color: var(--color-accent, #8B4513);
-                box-shadow: var(--shadow-md);
+                box-shadow: var(--shadow-card-hover,
+                    0 4px 8px rgba(44, 36, 22, 0.06),
+                    0 8px 24px rgba(44, 36, 22, 0.1),
+                    0 16px 32px rgba(44, 36, 22, 0.06));
+            }
+
+            .path-card:active {
+                transform: translateY(-2px) scale(0.99);
             }
 
             .path-header {
@@ -585,13 +615,26 @@ export class BtDashboardView extends BaseComponent {
                 padding: var(--space-3, 12px);
                 background: var(--color-bg-secondary, #F5F0E8);
                 border: 1px solid var(--color-border-subtle, #E5DED2);
-                border-radius: var(--radius-lg, 8px);
+                border-radius: var(--radius-lg, 14px);
                 cursor: pointer;
-                transition: all var(--duration-fast, 150ms) var(--ease-out);
+                transition:
+                    transform var(--duration-normal, 250ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)),
+                    box-shadow var(--duration-normal, 250ms) var(--ease-out),
+                    border-color var(--duration-fast, 150ms) var(--ease-out),
+                    background var(--duration-fast, 150ms) var(--ease-out);
             }
 
             .queue-item:hover {
                 border-color: var(--color-accent, #8B4513);
+                background: var(--color-surface, #FFFFFF);
+                transform: translateX(4px);
+                box-shadow: var(--shadow-sm,
+                    0 1px 2px rgba(44, 36, 22, 0.04),
+                    0 2px 4px rgba(44, 36, 22, 0.06));
+            }
+
+            .queue-item:active {
+                transform: translateX(2px) scale(0.99);
             }
 
             .queue-position {
@@ -796,13 +839,45 @@ export class BtDashboardView extends BaseComponent {
                Animations
                ========================================================================== */
 
-            @keyframes countUp {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
+            @keyframes countReveal {
+                0% {
+                    opacity: 0;
+                    transform: translateY(12px) scale(0.9);
+                }
+                60% {
+                    transform: translateY(-2px) scale(1.02);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
             }
 
             .stat-value.animated {
-                animation: countUp var(--duration-normal, 250ms) var(--ease-out) forwards;
+                animation: countReveal var(--duration-slow, 350ms) var(--ease-spring-soft, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards;
+            }
+
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .stat-card,
+                .reading-item,
+                .path-card,
+                .queue-item,
+                .bar {
+                    transition: none;
+                }
+
+                .stat-card:hover,
+                .reading-item:hover,
+                .path-card:hover,
+                .queue-item:hover {
+                    transform: none;
+                }
+
+                .stat-value.animated {
+                    animation: none;
+                    opacity: 1;
+                }
             }
         `;
     }
