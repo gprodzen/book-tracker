@@ -394,6 +394,9 @@ export class BtDashboardView extends BaseComponent {
                 this.addListener(card, 'book-click', (e) => {
                     this.emit('show-book-detail', { bookId: e.detail.book.book_id });
                 });
+                this.addListener(card, 'progress-logged', () => {
+                    this._loadHome({ skipCache: true });
+                });
             }
         });
 
@@ -413,7 +416,7 @@ export class BtDashboardView extends BaseComponent {
 
         // Subscribe to book updates (status changes from modal)
         this._unsubscribe = events.on(EVENT_NAMES.BOOK_UPDATED, () => {
-            this._loadHome();
+            this._loadHome({ skipCache: true });
         });
     }
 
@@ -424,15 +427,19 @@ export class BtDashboardView extends BaseComponent {
         }
     }
 
-    async _loadHome() {
+    async _loadHome(options = {}) {
         this.setState({ loading: true, error: null });
         try {
-            const home = await api.getHome();
+            const home = await api.getHome(options);
             this.setState({ loading: false, home });
         } catch (error) {
             console.error('Home error:', error);
             this.setState({ loading: false, error: 'Failed to load home. Make sure the backend is running.' });
         }
+    }
+
+    async refresh() {
+        await this._loadHome({ skipCache: true });
     }
 }
 

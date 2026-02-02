@@ -151,6 +151,11 @@ class BookTrackerApp {
             this._showLogUpdateModal(e.detail?.bookId || null);
         });
 
+        // Modal event handlers (bubbled up from modal content)
+        this._modal?.addEventListener('open-log-update', (e) => {
+            this._showLogUpdateModal(e.detail?.bookId || null);
+        });
+
         this._viewContainer?.addEventListener('create-path', () => {
             this._showCreatePathModal();
         });

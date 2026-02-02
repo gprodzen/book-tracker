@@ -197,10 +197,11 @@ class ApiClient {
     // Home API
     // ==========================================
 
-    async getHome() {
+    async getHome(options = {}) {
         return this.get('/home', {
             cacheKey: 'home',
-            cacheTtl: CACHE_TTL.home
+            cacheTtl: CACHE_TTL.home,
+            ...options
         });
     }
 
@@ -495,6 +496,7 @@ class ApiClient {
         // Clear all book-related caches
         await cacheManager.deleteByPrefix('books:');
         await cacheManager.delete('dashboard');
+        await cacheManager.delete('home');
         await cacheManager.delete('pipeline');
         await cacheManager.delete('stats');
         await cacheManager.deleteByPrefix('activity:');
