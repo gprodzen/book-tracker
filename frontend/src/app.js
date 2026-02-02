@@ -31,8 +31,9 @@ import './views/bt-settings-view.js';
 // Import book components
 import './components/books/bt-book-detail.js';
 import './components/books/bt-book-form.js';
-import './components/books/bt-checkin-modal.js';
 import './components/books/bt-reading-history.js';
+import './components/books/bt-shelf-card.js';
+import './components/updates/bt-log-update.js';
 
 // Import cover picker
 import './components/shared/bt-cover-picker.js';
@@ -134,12 +135,20 @@ class BookTrackerApp {
         // FAB click handler
         const fab = document.querySelector('bt-fab');
         if (fab) {
-            fab.addEventListener('click', () => this._showAddBookModal());
+            fab.addEventListener('click', () => this._showLogUpdateModal());
         }
 
         // Global view event handlers (bubbled up from views)
         this._viewContainer?.addEventListener('show-book-detail', (e) => {
             this._showBookDetail(e.detail.bookId);
+        });
+
+        this._viewContainer?.addEventListener('add-book', () => {
+            this._showAddBookModal();
+        });
+
+        this._viewContainer?.addEventListener('open-log-update', (e) => {
+            this._showLogUpdateModal(e.detail?.bookId || null);
         });
 
         this._viewContainer?.addEventListener('create-path', () => {
@@ -302,6 +311,33 @@ class BookTrackerApp {
     }
 
     /**
+     * Show log update modal
+     */
+    _showLogUpdateModal(bookId = null) {
+        if (!this._modal) return;
+
+        const logUpdate = document.createElement('bt-log-update');
+        logUpdate.setAttribute('show-cancel', '');
+        if (bookId) {
+            logUpdate.setAttribute('book-id', bookId);
+        }
+
+        logUpdate.addEventListener('progress-logged', () => {
+            this._modal.close();
+            this._showToast('Progress logged!', 'success');
+            this._refreshCurrentView();
+        });
+
+        logUpdate.addEventListener('cancel', () => {
+            this._modal.close();
+        });
+
+        this._modal.setContent('Log Update', '');
+        this._modal.appendChild(logUpdate);
+        this._modal.open();
+    }
+
+    /**
      * Show add book modal
      */
     _showAddBookModal(sourceBookId = null) {
@@ -381,11 +417,11 @@ class BookTrackerApp {
                 </div>
                 <div class="form-group">
                     <label for="path-objective">Objective</label>
-                    <textarea id="path-objective" placeholder="What do you want to achieve with this learning path?"></textarea>
+                    <textarea id="path-objective" placeholder="What do you want to achieve with this objective?"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="path-description">Description (optional)</label>
-                    <textarea id="path-description" placeholder="Additional details about this learning path"></textarea>
+                    <textarea id="path-description" placeholder="Additional details about this objective"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="path-color">Color</label>
@@ -398,7 +434,7 @@ class BookTrackerApp {
             </form>
         `;
 
-        this._modal.setContent('Create Learning Path', content);
+        this._modal.setContent('Create Objective', content);
         this._modal.open();
 
         const form = this._modal.querySelector('#create-path-form');
@@ -418,7 +454,7 @@ class BookTrackerApp {
                 this._refreshCurrentView();
             } catch (error) {
                 console.error('Error creating path:', error);
-                this._showToast('Failed to create path', 'error');
+                this._showToast('Failed to create objective', 'error');
             }
         });
     }
@@ -457,7 +493,7 @@ class BookTrackerApp {
                 </form>
             `;
 
-            this._modal.setContent('Edit Learning Path', content);
+            this._modal.setContent('Edit Objective', content);
             this._modal.open();
 
             const form = this._modal.querySelector('#edit-path-form');
@@ -473,16 +509,16 @@ class BookTrackerApp {
                 try {
                     await api.updatePath(pathId, data);
                     this._modal.close();
-                    this._showToast('Path updated', 'success');
+                    this._showToast('Objective updated', 'success');
                     this._refreshCurrentView();
                 } catch (error) {
                     console.error('Error updating path:', error);
-                    this._showToast('Failed to update path', 'error');
+                    this._showToast('Failed to update objective', 'error');
                 }
             });
         } catch (error) {
             console.error('Error loading path:', error);
-            this._showToast('Failed to load path', 'error');
+            this._showToast('Failed to load objective', 'error');
         }
     }
 
@@ -521,7 +557,7 @@ class BookTrackerApp {
                 </div>
             `;
 
-            this._modal.setContent('Add Book to Path', content);
+        this._modal.setContent('Add Book to Objective', content);
             this._modal.open();
 
             // Add click handlers to book items
@@ -531,7 +567,7 @@ class BookTrackerApp {
                     try {
                         await api.addBookToPath(pathId, userBookId);
                         this._modal.close();
-                        this._showToast('Book added to path', 'success');
+                        this._showToast('Book added to objective', 'success');
                         this._refreshCurrentView();
                     } catch (error) {
                         console.error('Error adding book:', error);
@@ -594,6 +630,7 @@ class BookTrackerApp {
         }
 
         try {
+            const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const registration = await navigator.serviceWorker.register('/sw.js');
             console.log('[App] Service worker registered:', registration.scope);
 
@@ -606,6 +643,15 @@ class BookTrackerApp {
                     }
                 });
             });
+
+            if (isDev) {
+                await registration.update();
+                if (registration.active) {
+                    const channel = new MessageChannel();
+                    registration.active.postMessage({ type: 'SKIP_WAITING' });
+                    registration.active.postMessage({ type: 'CLEAR_CACHES' }, [channel.port2]);
+                }
+            }
         } catch (error) {
             console.error('[App] Service worker registration failed:', error);
         }

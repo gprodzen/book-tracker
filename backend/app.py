@@ -56,6 +56,93 @@ def dict_from_row(row):
     return dict(zip(row.keys(), row))
 
 
+def compute_progress_update(book_row, input_mode: str, current_page, current_percent):
+    """Compute progress update values based on input mode."""
+    page_count = book_row['page_count']
+    previous_page = book_row['current_page'] or 0
+    previous_percent = book_row['progress_percent'] or 0
+
+    if input_mode == 'page':
+        if current_page is None:
+            raise ValueError('current_page is required for page mode')
+        new_current_page = max(0, int(current_page))
+        if page_count:
+            new_current_page = min(new_current_page, page_count)
+        if page_count:
+            new_current_percent = min(100, int(round((new_current_page / page_count) * 100)))
+        else:
+            new_current_percent = previous_percent
+    else:
+        if current_percent is None:
+            raise ValueError('progress_percent is required for percent mode')
+        new_current_percent = max(0, min(100, int(current_percent)))
+        if page_count:
+            new_current_page = int(round((new_current_percent / 100) * page_count))
+        else:
+            new_current_page = previous_page
+
+    delta_pages = new_current_page - previous_page
+    delta_percent = new_current_percent - previous_percent
+
+    return {
+        'previous_page': previous_page,
+        'current_page': new_current_page,
+        'previous_percent': previous_percent,
+        'current_percent': new_current_percent,
+        'delta_pages': delta_pages,
+        'delta_percent': delta_percent
+    }
+
+
+def refresh_book_progress_from_updates(db, user_book_id: int):
+    """Recalculate book progress from the most recent progress update."""
+    cursor = db.execute('''
+        SELECT * FROM progress_updates
+        WHERE user_book_id = ?
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+    ''', (user_book_id,))
+    latest = cursor.fetchone()
+
+    if not latest:
+        db.execute('''
+            UPDATE user_books
+            SET current_page = 0,
+                progress_percent = 0,
+                last_read_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (user_book_id,))
+        db.commit()
+        return
+
+    latest_row = dict_from_row(latest)
+    current_percent = latest_row.get('current_percent') or 0
+    new_status = 'finished' if current_percent >= 100 else 'reading'
+
+    db.execute('''
+        UPDATE user_books
+        SET current_page = ?,
+            progress_percent = ?,
+            last_read_at = ?,
+            status = ?,
+            started_reading_at = COALESCE(started_reading_at, CURRENT_TIMESTAMP),
+            finished_reading_at = CASE
+                WHEN ? = 'finished' THEN COALESCE(finished_reading_at, CURRENT_TIMESTAMP)
+                ELSE NULL
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (
+        latest_row.get('current_page'),
+        current_percent,
+        latest_row.get('created_at'),
+        new_status,
+        new_status,
+        user_book_id
+    ))
+    db.commit()
+
 def init_database():
     """Initialize database if it doesn't exist."""
     if not DATABASE.exists():
@@ -73,6 +160,30 @@ def init_database():
             from migrate_v1 import migrate
             migrate()
 
+
+def ensure_progress_updates_table():
+    """Ensure progress_updates table exists for existing databases."""
+    conn = sqlite3.connect(DATABASE)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS progress_updates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_book_id INTEGER NOT NULL REFERENCES user_books(id) ON DELETE CASCADE,
+            input_mode TEXT CHECK(input_mode IN ('page', 'percent')) NOT NULL,
+            previous_page INTEGER,
+            current_page INTEGER,
+            previous_percent INTEGER,
+            current_percent INTEGER,
+            delta_pages INTEGER,
+            delta_percent INTEGER,
+            note TEXT,
+            source TEXT DEFAULT 'manual',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_progress_updates_user_book_id ON progress_updates(user_book_id)')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_progress_updates_created_at ON progress_updates(created_at)')
+    conn.commit()
+    conn.close()
 
 # --- Authentication ---
 
@@ -377,6 +488,18 @@ def create_book():
     db.commit()
 
     user_book_id = cursor.lastrowid
+
+    objective_ids = data.get('objective_ids') or []
+    if isinstance(objective_ids, list) and objective_ids:
+        cursor = db.execute('SELECT id FROM learning_paths')
+        existing_paths = {row['id'] for row in cursor.fetchall()}
+        for path_id in objective_ids:
+            if path_id in existing_paths:
+                db.execute('''
+                    INSERT OR IGNORE INTO learning_path_books (learning_path_id, user_book_id, position)
+                    VALUES (?, ?, 0)
+                ''', (path_id, user_book_id))
+        db.commit()
 
     # Return the created book
     cursor = db.execute('SELECT * FROM library_view WHERE user_book_id = ?', (user_book_id,))
@@ -952,6 +1075,461 @@ def update_book(book_id: int):
     updated_book = dict_from_row(cursor.fetchone())
 
     return jsonify(updated_book)
+
+
+# --- Book Objectives API ---
+
+@app.route('/api/books/<int:book_id>/objectives', methods=['PATCH'])
+@require_auth
+def update_book_objectives(book_id: int):
+    """Replace objective assignments for a book."""
+    db = get_db()
+    data = request.get_json() or {}
+    objective_ids = data.get('objective_ids')
+
+    if not isinstance(objective_ids, list):
+        return jsonify({'error': 'objective_ids must be a list'}), 400
+
+    cursor = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+
+    db.execute('DELETE FROM learning_path_books WHERE user_book_id = ?', (user_book_id,))
+
+    if objective_ids:
+        cursor = db.execute('SELECT id FROM learning_paths')
+        existing_paths = {row['id'] for row in cursor.fetchall()}
+        for path_id in objective_ids:
+            if path_id in existing_paths:
+                db.execute('''
+                    INSERT OR IGNORE INTO learning_path_books (learning_path_id, user_book_id, position)
+                    VALUES (?, ?, 0)
+                ''', (path_id, user_book_id))
+
+    db.commit()
+
+    cursor = db.execute('''
+        SELECT lp.id, lp.name, lp.color, lp.objective
+        FROM learning_paths lp
+        JOIN learning_path_books lpb ON lp.id = lpb.learning_path_id
+        WHERE lpb.user_book_id = ?
+    ''', (user_book_id,))
+    paths = [dict_from_row(row) for row in cursor.fetchall()]
+
+    return jsonify({'paths': paths})
+
+
+# --- Home API ---
+
+@app.route('/api/home', methods=['GET'])
+@require_auth
+def get_home():
+    """Get data for the Home (Now + Next) view."""
+    db = get_db()
+
+    cursor = db.execute('''
+        SELECT * FROM library_view
+        WHERE status = 'reading'
+        ORDER BY last_read_at DESC NULLS LAST, priority DESC
+        LIMIT 8
+    ''')
+    now = [dict_from_row(row) for row in cursor.fetchall()]
+
+    cursor = db.execute('''
+        SELECT lv.*
+        FROM library_view lv
+        LEFT JOIN learning_path_books lpb ON lv.user_book_id = lpb.user_book_id
+        WHERE lv.status = 'want_to_read' AND lpb.user_book_id IS NULL
+        ORDER BY lv.date_added DESC
+        LIMIT 20
+    ''')
+    inbox = [dict_from_row(row) for row in cursor.fetchall()]
+
+    def hydrate_cover(books):
+        for book in books:
+            if not book.get('cover_image_url'):
+                isbn = book.get('isbn13') or book.get('isbn')
+                if isbn:
+                    book['cover_image_url'] = get_open_library_cover_url(isbn=isbn, size='L')
+
+    def hydrate_paths(books):
+        """Add learning path associations to books."""
+        for book in books:
+            user_book_id = book.get('user_book_id')
+            if user_book_id:
+                cursor2 = db.execute('''
+                    SELECT lp.id, lp.name, lp.color
+                    FROM learning_paths lp
+                    JOIN learning_path_books lpb ON lp.id = lpb.learning_path_id
+                    WHERE lpb.user_book_id = ?
+                ''', (user_book_id,))
+                book['paths'] = [dict_from_row(row) for row in cursor2.fetchall()]
+            else:
+                book['paths'] = []
+
+    hydrate_cover(now)
+    hydrate_paths(now)
+    hydrate_cover(inbox)
+
+    cursor = db.execute('''
+        SELECT
+            lp.id,
+            lp.name,
+            lp.description,
+            lp.objective,
+            lp.color,
+            COUNT(lpb.user_book_id) as total_books,
+            SUM(CASE WHEN ub.status = 'finished' THEN 1 ELSE 0 END) as completed_books,
+            SUM(CASE WHEN ub.status = 'reading' THEN 1 ELSE 0 END) as reading_count,
+            SUM(CASE WHEN ub.status = 'queued' THEN 1 ELSE 0 END) as queued_count,
+            SUM(CASE WHEN ub.status = 'want_to_read' THEN 1 ELSE 0 END) as want_to_read_count,
+            SUM(CASE WHEN ub.status = 'abandoned' THEN 1 ELSE 0 END) as abandoned_count
+        FROM learning_paths lp
+        LEFT JOIN learning_path_books lpb ON lp.id = lpb.learning_path_id
+        LEFT JOIN user_books ub ON lpb.user_book_id = ub.id
+        GROUP BY lp.id
+        ORDER BY lp.created_at DESC
+    ''')
+    objectives_summary = []
+    for row in cursor.fetchall():
+        path = dict_from_row(row)
+        total = path.get('total_books') or 0
+        completed = path.get('completed_books') or 0
+        path['progress_pct'] = int((completed / total) * 100) if total else 0
+        path['counts_by_status'] = {
+            'reading': path.pop('reading_count') or 0,
+            'queued': path.pop('queued_count') or 0,
+            'want_to_read': path.pop('want_to_read_count') or 0,
+            'finished': completed,
+            'abandoned': path.pop('abandoned_count') or 0
+        }
+        objectives_summary.append(path)
+
+    cursor = db.execute('''
+        SELECT
+            lp.id as path_id,
+            lp.name,
+            lp.objective,
+            lp.color,
+            lpb.position,
+            lv.*
+        FROM learning_paths lp
+        LEFT JOIN learning_path_books lpb ON lp.id = lpb.learning_path_id
+        LEFT JOIN library_view lv ON lv.user_book_id = lpb.user_book_id
+        WHERE lv.user_book_id IS NOT NULL
+    ''')
+    rows = [dict_from_row(row) for row in cursor.fetchall()]
+
+    objectives_map = {}
+    for row in rows:
+        path_id = row['path_id']
+        if path_id not in objectives_map:
+            objectives_map[path_id] = {
+                'id': path_id,
+                'name': row['name'],
+                'objective': row['objective'],
+                'color': row['color'],
+                'books': []
+            }
+        objectives_map[path_id]['books'].append(row)
+
+    status_order = {'reading': 1, 'queued': 2, 'want_to_read': 3, 'finished': 4, 'abandoned': 5}
+    next_by_objective = []
+    for path in objectives_map.values():
+        candidates = [b for b in path['books'] if b.get('status') in ('reading', 'queued', 'want_to_read')]
+        candidates.sort(key=lambda b: (status_order.get(b.get('status'), 99), b.get('position') or 0))
+        next_books = candidates[:3]
+        hydrate_cover(next_books)
+        next_by_objective.append({
+            'id': path['id'],
+            'name': path['name'],
+            'objective': path['objective'],
+            'color': path['color'],
+            'next_books': next_books
+        })
+
+    return jsonify({
+        'now': now,
+        'next_by_objective': next_by_objective,
+        'inbox': inbox,
+        'objectives_summary': objectives_summary
+    })
+
+# --- Progress Updates API ---
+
+@app.route('/api/books/<int:book_id>/progress', methods=['POST'])
+@require_auth
+def log_book_progress(book_id: int):
+    """Log a state-first progress update for a book."""
+    db = get_db()
+    data = request.get_json() or {}
+
+    current_page = data.get('current_page')
+    progress_percent = data.get('progress_percent')
+    note = data.get('note')
+    mark_finished = bool(data.get('mark_finished'))
+
+    if current_page is None and progress_percent is None:
+        return jsonify({'error': 'current_page or progress_percent is required'}), 400
+
+    cursor = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    book_row = dict_from_row(book)
+    input_mode = 'page' if current_page is not None else 'percent'
+
+    try:
+        computed = compute_progress_update(book_row, input_mode, current_page, progress_percent)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+    page_count = book_row['page_count']
+    should_finish = mark_finished or (computed['current_percent'] >= 100) or (page_count and computed['current_page'] >= page_count)
+    new_status = 'finished' if should_finish else 'reading'
+
+    if new_status == 'finished':
+        db.execute('''
+            UPDATE user_books
+            SET current_page = ?,
+                progress_percent = ?,
+                last_read_at = CURRENT_TIMESTAMP,
+                status = 'finished',
+                started_reading_at = COALESCE(started_reading_at, CURRENT_TIMESTAMP),
+                finished_reading_at = COALESCE(finished_reading_at, CURRENT_TIMESTAMP),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (
+            computed['current_page'],
+            computed['current_percent'],
+            book_row['user_book_id']
+        ))
+    else:
+        db.execute('''
+            UPDATE user_books
+            SET current_page = ?,
+                progress_percent = ?,
+                last_read_at = CURRENT_TIMESTAMP,
+                status = 'reading',
+                started_reading_at = COALESCE(started_reading_at, CURRENT_TIMESTAMP),
+                finished_reading_at = CASE WHEN status = 'finished' THEN NULL ELSE finished_reading_at END,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (
+            computed['current_page'],
+            computed['current_percent'],
+            book_row['user_book_id']
+        ))
+
+    cursor = db.execute('''
+        INSERT INTO progress_updates (
+            user_book_id,
+            input_mode,
+            previous_page,
+            current_page,
+            previous_percent,
+            current_percent,
+            delta_pages,
+            delta_percent,
+            note
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        book_row['user_book_id'],
+        input_mode,
+        computed['previous_page'],
+        computed['current_page'],
+        computed['previous_percent'],
+        computed['current_percent'],
+        computed['delta_pages'],
+        computed['delta_percent'],
+        note.strip() if isinstance(note, str) and note.strip() else None
+    ))
+    db.commit()
+
+    update_id = cursor.lastrowid
+    update_row = db.execute('SELECT * FROM progress_updates WHERE id = ?', (update_id,)).fetchone()
+    updated_book = db.execute('SELECT * FROM library_view WHERE book_id = ?', (book_id,)).fetchone()
+
+    return jsonify({
+        'update': dict_from_row(update_row),
+        'book': dict_from_row(updated_book)
+    }), 201
+
+
+@app.route('/api/books/<int:book_id>/progress', methods=['GET'])
+@require_auth
+def get_book_progress_updates(book_id: int):
+    """Get progress updates for a book."""
+    db = get_db()
+    cursor = db.execute('SELECT user_book_id FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    cursor = db.execute('''
+        SELECT * FROM progress_updates
+        WHERE user_book_id = ?
+        ORDER BY created_at DESC, id DESC
+    ''', (user_book_id,))
+    updates = [dict_from_row(row) for row in cursor.fetchall()]
+    return jsonify(updates)
+
+
+@app.route('/api/books/<int:book_id>/progress/<int:update_id>', methods=['PATCH'])
+@require_auth
+def update_book_progress_update(book_id: int, update_id: int):
+    """Update a progress update and refresh book state if needed."""
+    db = get_db()
+    data = request.get_json() or {}
+
+    cursor = db.execute('SELECT user_book_id, page_count FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    update_row = db.execute('''
+        SELECT * FROM progress_updates
+        WHERE id = ? AND user_book_id = ?
+    ''', (update_id, user_book_id)).fetchone()
+
+    if not update_row:
+        return jsonify({'error': 'Update not found'}), 404
+
+    update_dict = dict_from_row(update_row)
+
+    current_page = data.get('current_page')
+    progress_percent = data.get('progress_percent')
+    if 'note' in data:
+        note = data.get('note')
+        note = note.strip() if isinstance(note, str) and note.strip() else None
+    else:
+        note = update_dict.get('note')
+
+    if current_page is None and progress_percent is None and 'note' in data:
+        db.execute('UPDATE progress_updates SET note = ? WHERE id = ?', (note, update_id))
+        db.commit()
+    else:
+        input_mode = update_dict.get('input_mode')
+        if current_page is not None:
+            input_mode = 'page'
+        if progress_percent is not None:
+            input_mode = 'percent'
+
+        prev_book = {
+            'page_count': book['page_count'],
+            'current_page': update_dict.get('previous_page') or 0,
+            'progress_percent': update_dict.get('previous_percent') or 0
+        }
+
+        if input_mode == 'page' and current_page is None:
+            current_page = update_dict.get('current_page')
+        if input_mode == 'percent' and progress_percent is None:
+            progress_percent = update_dict.get('current_percent')
+
+        computed = compute_progress_update(prev_book, input_mode, current_page, progress_percent)
+
+        db.execute('''
+            UPDATE progress_updates
+            SET input_mode = ?,
+                current_page = ?,
+                current_percent = ?,
+                delta_pages = ?,
+                delta_percent = ?,
+                note = ?
+            WHERE id = ?
+        ''', (
+            input_mode,
+            computed['current_page'],
+            computed['current_percent'],
+            computed['delta_pages'],
+            computed['delta_percent'],
+            note.strip() if isinstance(note, str) and note.strip() else None,
+            update_id
+        ))
+        db.commit()
+
+    latest = db.execute('''
+        SELECT id FROM progress_updates
+        WHERE user_book_id = ?
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+    ''', (user_book_id,)).fetchone()
+
+    if latest and latest['id'] == update_id:
+        refresh_book_progress_from_updates(db, user_book_id)
+
+    updated = db.execute('SELECT * FROM progress_updates WHERE id = ?', (update_id,)).fetchone()
+    return jsonify(dict_from_row(updated))
+
+
+@app.route('/api/books/<int:book_id>/progress/<int:update_id>', methods=['DELETE'])
+@require_auth
+def delete_book_progress_update(book_id: int, update_id: int):
+    """Delete a progress update and recalculate book state."""
+    db = get_db()
+
+    cursor = db.execute('SELECT user_book_id FROM library_view WHERE book_id = ?', (book_id,))
+    book = cursor.fetchone()
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    user_book_id = book['user_book_id']
+    cursor = db.execute('''
+        SELECT * FROM progress_updates
+        WHERE id = ? AND user_book_id = ?
+    ''', (update_id, user_book_id))
+    if not cursor.fetchone():
+        return jsonify({'error': 'Update not found'}), 404
+
+    db.execute('DELETE FROM progress_updates WHERE id = ?', (update_id,))
+    db.commit()
+
+    refresh_book_progress_from_updates(db, user_book_id)
+    return '', 204
+
+
+@app.route('/api/activity', methods=['GET'])
+@require_auth
+def get_activity():
+    """Get recent progress updates across the library."""
+    db = get_db()
+    limit = int(request.args.get('limit', 20))
+    offset = int(request.args.get('offset', 0))
+    status = request.args.get('status')
+
+    query = '''
+        SELECT
+            pu.*,
+            lv.book_id,
+            lv.title,
+            lv.author,
+            lv.cover_image_url,
+            lv.page_count,
+            lv.status
+        FROM progress_updates pu
+        JOIN library_view lv ON lv.user_book_id = pu.user_book_id
+    '''
+    params = []
+    if status:
+        query += ' WHERE lv.status = ?'
+        params.append(status)
+
+    query += ' ORDER BY pu.created_at DESC, pu.id DESC LIMIT ? OFFSET ?'
+    params.extend([limit, offset])
+
+    cursor = db.execute(query, params)
+    updates = [dict_from_row(row) for row in cursor.fetchall()]
+    return jsonify({
+        'updates': updates,
+        'limit': limit,
+        'offset': offset
+    })
 
 
 # --- Reading Sessions API ---
@@ -1749,6 +2327,7 @@ def export_csv():
 
 # Initialize database on startup
 init_database()
+ensure_progress_updates_table()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

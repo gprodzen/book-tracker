@@ -3,6 +3,7 @@
  */
 
 const CACHE_VERSION = 'v1';
+const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const STATIC_CACHE = `book-tracker-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `book-tracker-dynamic-${CACHE_VERSION}`;
 const COVER_CACHE = `book-tracker-covers-${CACHE_VERSION}`;
@@ -35,7 +36,11 @@ const STATIC_ASSETS = [
     '/src/components/layout/bt-fab.js',
     '/src/components/books/bt-book-detail.js',
     '/src/components/books/bt-book-form.js',
+    '/src/components/books/bt-shelf-card.js',
     '/src/components/books/bt-reading-card.js',
+    '/src/components/updates/bt-log-update.js',
+    '/src/components/updates/bt-activity-feed.js',
+    '/src/components/updates/bt-activity-item.js',
     '/src/views/bt-login-view.js',
     '/src/views/bt-dashboard-view.js',
     '/src/views/bt-library-view.js',
@@ -57,6 +62,11 @@ const COVER_DOMAINS = [
  */
 self.addEventListener('install', (event) => {
     console.log('[SW] Installing service worker...');
+
+    if (IS_DEV) {
+        event.waitUntil(self.skipWaiting());
+        return;
+    }
 
     event.waitUntil(
         caches.open(STATIC_CACHE)
@@ -81,22 +91,21 @@ self.addEventListener('activate', (event) => {
     console.log('[SW] Activating service worker...');
 
     event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames
-                        .filter((name) => {
-                            return name.startsWith('book-tracker-') &&
-                                   name !== STATIC_CACHE &&
-                                   name !== DYNAMIC_CACHE &&
-                                   name !== COVER_CACHE;
-                        })
-                        .map((name) => {
-                            console.log('[SW] Deleting old cache:', name);
-                            return caches.delete(name);
-                        })
-                );
-            })
+        (IS_DEV ? clearAllCaches() : Promise.resolve())
+            .then(() => caches.keys())
+            .then((cacheNames) => Promise.all(
+                cacheNames
+                    .filter((name) => {
+                        return name.startsWith('book-tracker-') &&
+                               name !== STATIC_CACHE &&
+                               name !== DYNAMIC_CACHE &&
+                               name !== COVER_CACHE;
+                    })
+                    .map((name) => {
+                        console.log('[SW] Deleting old cache:', name);
+                        return caches.delete(name);
+                    })
+            ))
             .then(() => {
                 console.log('[SW] Claiming clients');
                 return self.clients.claim();
@@ -118,6 +127,11 @@ self.addEventListener('fetch', (event) => {
 
     // Skip chrome-extension and other non-http(s) requests
     if (!url.protocol.startsWith('http')) {
+        return;
+    }
+
+    if (IS_DEV) {
+        event.respondWith(fetch(request));
         return;
     }
 

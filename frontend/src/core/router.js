@@ -223,9 +223,9 @@ class Router {
 export const router = new Router();
 
 // Register default routes
-router.register('dashboard', { title: 'Dashboard' });
+router.register('dashboard', { title: 'Home' });
 router.register('pipeline', { title: 'Pipeline' });
 router.register('library', { title: 'Library' });
-router.register('paths', { title: 'Learning Paths' });
+router.register('paths', { title: 'Objectives' });
 router.register('settings', { title: 'Settings' });
 router.register('login', { title: 'Sign In', requiresAuth: false });

@@ -207,13 +207,20 @@ export class BtLibraryView extends BaseComponent {
                 border: 1px solid var(--color-border, #D4C9B8);
                 border-radius: 6px;
                 color: var(--color-text-primary, #2C2416);
-                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
+                font-family: var(--font-body, 'IBM Plex Sans', sans-serif);
                 font-size: 0.875rem;
             }
 
             .search-box input:focus {
                 outline: none;
                 border-color: var(--color-accent, #8B4513);
+            }
+
+            .controls-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: auto;
             }
 
             .btn {
@@ -223,7 +230,7 @@ export class BtLibraryView extends BaseComponent {
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
-                font-family: var(--font-display, 'Crimson Pro', Georgia, serif);
+                font-family: var(--font-body, 'IBM Plex Sans', sans-serif);
                 font-size: 0.875rem;
                 transition: all 0.15s ease-out;
             }
@@ -586,7 +593,7 @@ export class BtLibraryView extends BaseComponent {
 
                     ${paths && paths.length > 0 ? `
                         <div class="filter-section">
-                            <div class="filter-section-title">Learning Paths</div>
+                            <div class="filter-section-title">Objectives</div>
                             <div class="filter-list">
                                 ${paths.map(path => `
                                     <button class="filter-item ${filters.path == path.id ? 'active' : ''}" data-path-id="${path.id}">
@@ -610,22 +617,25 @@ export class BtLibraryView extends BaseComponent {
                                 value="${this.escapeHtml(filters.search || '')}"
                             >
                         </div>
-                        <div class="column-settings-wrapper">
-                            <button ref="columnSettingsBtn" class="btn btn-icon" title="Column settings">
-                                &#9881;
-                            </button>
-                            <div class="column-settings-dropdown ${showColumnSettings ? '' : 'hidden'}" ref="columnDropdown">
-                                ${ALL_COLUMNS.filter(col => col.hideable).map(col => `
-                                    <label class="column-option ${col.hideable ? '' : 'disabled'}">
-                                        <input
-                                            type="checkbox"
-                                            data-column="${col.key}"
-                                            ${visibleColumns.includes(col.key) ? 'checked' : ''}
-                                            ${col.hideable ? '' : 'disabled'}
-                                        >
-                                        ${col.label}
-                                    </label>
-                                `).join('')}
+                        <div class="controls-actions">
+                            <button ref="addBookBtn" class="btn primary">Add Book</button>
+                            <div class="column-settings-wrapper">
+                                <button ref="columnSettingsBtn" class="btn btn-icon" title="Column settings">
+                                    &#9881;
+                                </button>
+                                <div class="column-settings-dropdown ${showColumnSettings ? '' : 'hidden'}" ref="columnDropdown">
+                                    ${ALL_COLUMNS.filter(col => col.hideable).map(col => `
+                                        <label class="column-option ${col.hideable ? '' : 'disabled'}">
+                                            <input
+                                                type="checkbox"
+                                                data-column="${col.key}"
+                                                ${visibleColumns.includes(col.key) ? 'checked' : ''}
+                                                ${col.hideable ? '' : 'disabled'}
+                                            >
+                                            ${col.label}
+                                        </label>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -796,21 +806,26 @@ export class BtLibraryView extends BaseComponent {
         // Search input
         const searchInput = this.ref('searchInput');
         if (searchInput) {
-            searchInput.addEventListener('input', () => {
+            this.addListener(searchInput, 'input', () => {
                 this._debouncedSearch(searchInput.value);
             });
         }
 
+        // Add book button
+        this.addListener(this.ref('addBookBtn'), 'click', () => {
+            this.emit('add-book');
+        });
+
         // Status filters (sidebar)
         this.$$('.filter-item[data-status]').forEach(item => {
-            item.addEventListener('click', () => {
+            this.addListener(item, 'click', () => {
                 this._handleFilterChange(item.dataset.status);
             });
         });
 
         // Path filters (sidebar)
         this.$$('.filter-item[data-path-id]').forEach(item => {
-            item.addEventListener('click', () => {
+            this.addListener(item, 'click', () => {
                 this._handlePathFilter(item.dataset.pathId);
             });
         });
@@ -820,14 +835,14 @@ export class BtLibraryView extends BaseComponent {
         const columnDropdown = this.ref('columnDropdown');
 
         if (columnSettingsBtn && columnDropdown) {
-            columnSettingsBtn.addEventListener('click', (e) => {
+            this.addListener(columnSettingsBtn, 'click', (e) => {
                 e.stopPropagation();
                 this.setState({ showColumnSettings: !this.state.showColumnSettings });
             });
 
             // Column checkboxes
             columnDropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
+                this.addListener(checkbox, 'change', () => {
                     const columnKey = checkbox.dataset.column;
                     let newColumns = [...this.state.visibleColumns];
 
@@ -853,24 +868,30 @@ export class BtLibraryView extends BaseComponent {
                 });
             });
 
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (this.state.showColumnSettings && !columnDropdown.contains(e.target) && e.target !== columnSettingsBtn) {
-                    this.setState({ showColumnSettings: false });
-                }
-            });
+            // Close dropdown when clicking outside - use document listener with cleanup
+            if (!this._documentClickHandler) {
+                this._documentClickHandler = (e) => {
+                    const dropdown = this.ref('columnDropdown');
+                    const btn = this.ref('columnSettingsBtn');
+                    if (this.state.showColumnSettings && dropdown && btn &&
+                        !dropdown.contains(e.target) && e.target !== btn) {
+                        this.setState({ showColumnSettings: false });
+                    }
+                };
+                document.addEventListener('click', this._documentClickHandler);
+            }
         }
 
         // Sortable column headers
         this.$$('.books-table th.sortable').forEach(th => {
-            th.addEventListener('click', () => {
+            this.addListener(th, 'click', () => {
                 this._handleColumnSort(th.dataset.sort);
             });
         });
 
         // Table row clicks
         this.$$('.books-table tbody tr').forEach(row => {
-            row.addEventListener('click', () => {
+            this.addListener(row, 'click', () => {
                 const bookId = row.dataset.bookId;
                 if (bookId) {
                     this.emit('show-book-detail', { bookId: parseInt(bookId, 10) });
@@ -879,15 +900,8 @@ export class BtLibraryView extends BaseComponent {
         });
 
         // Pagination
-        const prevBtn = this.ref('prevBtn');
-        const nextBtn = this.ref('nextBtn');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => this._handlePageChange(-1));
-        }
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this._handlePageChange(1));
-        }
+        this.addListener(this.ref('prevBtn'), 'click', () => this._handlePageChange(-1));
+        this.addListener(this.ref('nextBtn'), 'click', () => this._handlePageChange(1));
     }
 
     async onConnect() {
@@ -915,6 +929,10 @@ export class BtLibraryView extends BaseComponent {
 
     onDisconnect() {
         if (this._unsubRoute) this._unsubRoute();
+        if (this._documentClickHandler) {
+            document.removeEventListener('click', this._documentClickHandler);
+            this._documentClickHandler = null;
+        }
     }
 
     async _loadBooks() {

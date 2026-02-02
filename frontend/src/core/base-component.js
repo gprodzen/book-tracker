@@ -1,7 +1,10 @@
 /**
  * BaseComponent - Base class for all Web Components
- * Provides Shadow DOM encapsulation, reactive state, and lifecycle management
+ * Provides Shadow DOM encapsulation, reactive state, lifecycle management,
+ * and efficient DOM diffing via morphdom.
  */
+
+import morphdom from '../lib/morphdom.esm.js';
 
 export class BaseComponent extends HTMLElement {
     constructor() {
@@ -10,6 +13,9 @@ export class BaseComponent extends HTMLElement {
         this._refs = {};
         this._subscriptions = [];
         this._connected = false;
+        this._hasRendered = false;
+        this._lastTemplate = null;
+        this._attachedListeners = new WeakMap();
 
         // Create Shadow DOM
         this.attachShadow({ mode: 'open' });
@@ -53,19 +59,139 @@ export class BaseComponent extends HTMLElement {
     }
 
     /**
-     * Render the component
+     * Render the component using morphdom for efficient DOM updates
      */
     render() {
         const styles = this.styles();
         const template = this.template();
 
-        this.shadowRoot.innerHTML = `
-            ${styles ? `<style>${styles}</style>` : ''}
-            ${template}
-        `;
+        // First render: use innerHTML (no existing DOM to diff)
+        if (!this._hasRendered) {
+            this.shadowRoot.innerHTML = `
+                ${styles ? `<style>${styles}</style>` : ''}
+                <div data-bt-root>${template}</div>
+            `;
+            this._hasRendered = true;
+            this._lastTemplate = template;
+            this._cacheRefs();
+            this.afterRender();
+            return;
+        }
+
+        // Skip if template unchanged
+        if (template === this._lastTemplate) {
+            return;
+        }
+        this._lastTemplate = template;
+
+        // Find root element for morphing
+        const rootEl = this.shadowRoot.querySelector('[data-bt-root]');
+        if (!rootEl) {
+            // Fallback to full render if root element is missing
+            this.shadowRoot.innerHTML = `
+                ${styles ? `<style>${styles}</style>` : ''}
+                <div data-bt-root>${template}</div>
+            `;
+            this._cacheRefs();
+            this.afterRender();
+            return;
+        }
+
+        // Store focus state for restoration
+        const activeEl = this.shadowRoot.activeElement;
+        let focusRef = null;
+        let selStart, selEnd;
+
+        if (activeEl) {
+            // Remember which element had focus by ref or other identifier
+            focusRef = activeEl.getAttribute('ref') ||
+                       activeEl.getAttribute('data-key') ||
+                       activeEl.id;
+
+            if (activeEl.selectionStart !== undefined) {
+                selStart = activeEl.selectionStart;
+                selEnd = activeEl.selectionEnd;
+            }
+        }
+
+        // Create temp container with new content
+        const temp = document.createElement('div');
+        temp.setAttribute('data-bt-root', '');
+        temp.innerHTML = template;
+
+        // Morph with custom element handling
+        morphdom(rootEl, temp, {
+            getNodeKey: (node) => {
+                if (node.nodeType === 1) {
+                    return node.getAttribute('data-key') ||
+                           node.getAttribute('ref') ||
+                           node.id || null;
+                }
+                return null;
+            },
+            onBeforeElUpdated: (fromEl, toEl) => {
+                // Skip custom elements - they manage their own rendering
+                // Check if tag name contains a hyphen (custom element)
+                if (fromEl.tagName && fromEl.tagName.includes('-') &&
+                    !fromEl.hasAttribute('data-bt-root')) {
+                    // Sync attributes from new element to existing
+                    this._syncAttributes(fromEl, toEl);
+                    return false; // Don't morph this element's contents
+                }
+                return true;
+            },
+            onBeforeNodeDiscarded: (node) => {
+                // Clean up listener tracking for discarded elements
+                if (this._attachedListeners.has(node)) {
+                    this._attachedListeners.delete(node);
+                }
+                return true;
+            }
+        });
+
+        // Restore focus
+        if (focusRef) {
+            const newActiveEl = this.shadowRoot.querySelector(`[ref="${focusRef}"]`) ||
+                                this.shadowRoot.querySelector(`[data-key="${focusRef}"]`) ||
+                                this.shadowRoot.getElementById(focusRef);
+
+            if (newActiveEl && typeof newActiveEl.focus === 'function') {
+                newActiveEl.focus();
+                if (selStart !== undefined && newActiveEl.setSelectionRange) {
+                    try {
+                        newActiveEl.setSelectionRange(selStart, selEnd);
+                    } catch (e) {
+                        // Some input types don't support setSelectionRange
+                    }
+                }
+            }
+        }
 
         this._cacheRefs();
         this.afterRender();
+    }
+
+    /**
+     * Sync attributes from one element to another (for custom elements)
+     * @param {Element} fromEl - Existing element
+     * @param {Element} toEl - New element with updated attributes
+     */
+    _syncAttributes(fromEl, toEl) {
+        // Remove attributes not in toEl
+        const fromAttrs = Array.from(fromEl.attributes);
+        for (const attr of fromAttrs) {
+            if (!toEl.hasAttribute(attr.name)) {
+                fromEl.removeAttribute(attr.name);
+            }
+        }
+
+        // Add/update attributes from toEl
+        const toAttrs = Array.from(toEl.attributes);
+        for (const attr of toAttrs) {
+            if (fromEl.getAttribute(attr.name) !== attr.value) {
+                fromEl.setAttribute(attr.name, attr.value);
+            }
+        }
     }
 
     /**
@@ -103,6 +229,44 @@ export class BaseComponent extends HTMLElement {
      */
     $$(selector) {
         return this.shadowRoot.querySelectorAll(selector);
+    }
+
+    /**
+     * Add event listener with tracking to prevent duplicates across renders.
+     * Use this in afterRender() instead of direct addEventListener.
+     *
+     * @param {Element} element - Target element
+     * @param {string} event - Event name (e.g., 'click')
+     * @param {Function} handler - Event handler function
+     * @param {Object} [options] - addEventListener options
+     * @returns {Function|null} Cleanup function to remove the listener
+     */
+    addListener(element, event, handler, options) {
+        if (!element) return null;
+
+        let map = this._attachedListeners.get(element);
+        if (!map) {
+            map = new Map();
+            this._attachedListeners.set(element, map);
+        }
+
+        const key = `${event}-${JSON.stringify(options || {})}`;
+        const existing = map.get(key);
+
+        // Remove existing listener for this event/options combo
+        if (existing) {
+            element.removeEventListener(event, existing.handler, existing.options);
+        }
+
+        // Add new listener
+        element.addEventListener(event, handler, options);
+        map.set(key, { handler, options });
+
+        // Return cleanup function
+        return () => {
+            element.removeEventListener(event, handler, options);
+            map.delete(key);
+        };
     }
 
     /**
@@ -148,6 +312,8 @@ export class BaseComponent extends HTMLElement {
         this._connected = false;
         this._subscriptions.forEach(unsub => unsub());
         this._subscriptions = [];
+        this._hasRendered = false;
+        this._lastTemplate = null;
         this.onDisconnect();
     }
 

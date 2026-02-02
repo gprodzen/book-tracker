@@ -1,5 +1,5 @@
 /**
- * bt-paths-view - Learning paths view with nested interactions
+ * bt-paths-view - Objectives view with nested interactions
  */
 
 import { BaseComponent, defineComponent } from '../core/base-component.js';
@@ -341,13 +341,13 @@ export class BtPathsView extends BaseComponent {
         const { loading, error, paths } = this.state;
 
         if (loading) {
-            return '<bt-loading text="Loading learning paths..."></bt-loading>';
+            return '<bt-loading text="Loading objectives..."></bt-loading>';
         }
 
         if (error) {
             return `
                 <bt-empty-state
-                    title="Failed to load learning paths"
+                    title="Failed to load objectives"
                     description="${this.escapeHtml(error)}"
                 >
                     <button onclick="location.reload()">Try Again</button>
@@ -357,7 +357,7 @@ export class BtPathsView extends BaseComponent {
 
         return `
             <div class="header">
-                <h1>Learning Paths</h1>
+                <h1>Objectives</h1>
                 <button class="primary" ref="createPathBtn">+ New Path</button>
             </div>
 
@@ -367,8 +367,8 @@ export class BtPathsView extends BaseComponent {
                 </div>
             ` : `
                 <bt-empty-state
-                    title="No learning paths yet"
-                    description="Create learning paths to organize your reading around topics or goals."
+                    title="No objectives yet"
+                    description="Create objectives to organize your reading around topics or goals."
                 >
                     <button class="primary" ref="createFirstPathBtn">Create Your First Path</button>
                 </bt-empty-state>
@@ -648,7 +648,7 @@ export class BtPathsView extends BaseComponent {
     }
 
     async _handleDeletePath(pathId) {
-        if (!confirm('Are you sure you want to delete this learning path? This will not delete the books, just the path.')) {
+        if (!confirm('Are you sure you want to delete this objective? This will not delete the books, just the objective.')) {
             return;
         }
 
@@ -692,7 +692,7 @@ export class BtPathsView extends BaseComponent {
         } catch (error) {
             this.setState({
                 loading: false,
-                error: 'Failed to load learning paths. Make sure the backend is running.'
+                error: 'Failed to load objectives. Make sure the backend is running.'
             });
             console.error('Paths error:', error);
         }

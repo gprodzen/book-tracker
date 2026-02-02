@@ -67,6 +67,22 @@ CREATE TABLE IF NOT EXISTS reading_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- State-first progress updates (new logging model)
+CREATE TABLE IF NOT EXISTS progress_updates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_book_id INTEGER NOT NULL REFERENCES user_books(id) ON DELETE CASCADE,
+    input_mode TEXT CHECK(input_mode IN ('page', 'percent')) NOT NULL,
+    previous_page INTEGER,
+    current_page INTEGER,
+    previous_percent INTEGER,
+    current_percent INTEGER,
+    delta_pages INTEGER,
+    delta_percent INTEGER,
+    note TEXT,
+    source TEXT DEFAULT 'manual',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Markdown notes for books (separate from reading sessions for flexibility)
 CREATE TABLE IF NOT EXISTS notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,6 +153,8 @@ CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 CREATE INDEX IF NOT EXISTS idx_learning_path_books_path ON learning_path_books(learning_path_id);
 CREATE INDEX IF NOT EXISTS idx_learning_path_books_book ON learning_path_books(user_book_id);
 CREATE INDEX IF NOT EXISTS idx_user_books_source_book ON user_books(source_book_id);
+CREATE INDEX IF NOT EXISTS idx_progress_updates_user_book_id ON progress_updates(user_book_id);
+CREATE INDEX IF NOT EXISTS idx_progress_updates_created_at ON progress_updates(created_at);
 
 -- View for easy querying of books with user data
 CREATE VIEW IF NOT EXISTS library_view AS

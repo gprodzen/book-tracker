@@ -6,6 +6,27 @@ A personal book tracking application designed for intentional, focused reading.
 
 Overhauling from proof-of-concept functioning prototype to a quality, modern, polished application.
 
+## Cornerstone Design References
+
+> **IMPORTANT**: All UI development must reference these authoritative design documents:
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| **Design System Spec** | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | Complete design language, tokens, patterns |
+| **Card Reference** | [`frontend/design-system/card-reference.html`](frontend/design-system/card-reference.html) | Interactive implementation with copy-paste code |
+
+### The Warm Playback Card
+
+The **Warm Playback Card** (320x320px) is the cornerstone UI component. Its design patterns should inform all other components:
+
+- Gradient headers for emphasis
+- Stats strip pattern (3-column horizontal)
+- Playback-style progress bars
+- Circular increment button controls
+- Learning path pills with color dots
+
+When building or modifying components, ensure visual consistency with the card's established patterns.
+
 ## Theory of the App
 
 ### The Problem
@@ -15,6 +36,12 @@ Avid readers face a specific challenge: **book abandonment**. New reading ideas 
 ### The Solution
 
 Book Tracker is a **trusted capture system** that eliminates idea anxiety. When you encounter a book idea, capture it immediately knowing it won't be lost. This frees you to stay focused on your current reads.
+
+**Homepage Insight (Aha)**
+- The homepage is a *Now Reading Shelf*, not a management dashboard.
+- It exists to remind, encourage, and enable quick progress updates on books in progress.
+- It should feel calm and neutral (no nagging), with fast inline updates.
+- Objectives (learning paths) are also “in progress” and belong here as progress cards, not a separate management task.
 
 The app enforces **intentional friction** through:
 - **WIP limits** — Configurable limit on concurrent "reading" books (default: 5)
@@ -277,10 +304,10 @@ const status = router.getParam('status', 'all');
 
 | Route | Component | Description |
 |-------|-----------|-------------|
-| `#dashboard` | `bt-dashboard-view` | Stats, currently reading, paths overview |
+| `#dashboard` | `bt-dashboard-view` | Now Reading Shelf (in‑progress books + objective progress) |
 | `#pipeline` | `bt-pipeline-view` | Kanban board of all books by status |
 | `#library` | `bt-library-view` | Searchable/filterable book list |
-| `#paths` | `bt-paths-view` | Learning paths management |
+| `#paths` | `bt-paths-view` | Objectives (learning paths) management |
 | `#login` | `bt-login-view` | Authentication (if password set) |
 
 ---
@@ -295,7 +322,8 @@ All endpoints prefixed with `/api`. Authentication via session cookie.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/dashboard` | GET | Currently reading, queued books, learning paths summary |
+| `/home` | GET | Home shelf data (currently reading + objectives summary) |
+| `/dashboard` | GET | Legacy dashboard data |
 | `/stats` | GET | Aggregate statistics (totals, by year, top authors) |
 | `/pipeline` | GET | All books grouped by status |
 
@@ -416,70 +444,39 @@ interested → owned → queued → reading → finished
 
 ## Design System
 
-### Theme: Warm Library
+> **Full specification**: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
+> **Interactive reference**: [`frontend/design-system/card-reference.html`](frontend/design-system/card-reference.html)
 
-The app uses a **Warm Library** theme — a refined light aesthetic inspired by classic libraries, aged parchment paper, and scholarly warmth. Serif typography (Crimson Pro) evokes traditional book design.
+### Theme: Warm Playback
 
-### CSS Custom Properties
+The app uses a **Warm Playback** design language — a refined editorial aesthetic with bronze accents, warm paper tones, and reading-as-journey metaphors inspired by Spotify, Strava, and Apple Books.
 
-All styling uses CSS custom properties defined in `styles/tokens.css`:
+### Key Design Tokens
 
 ```css
-/* Background colors - cream/parchment tones */
---color-bg-primary: #FAF7F2;      /* Cream parchment */
---color-bg-secondary: #F5F0E8;    /* Warm cream */
---color-bg-tertiary: #EDE6DB;     /* Slightly darker cream */
---color-surface: #FFFFFF;          /* White cards */
-
-/* Text colors - brown/charcoal */
---color-text-primary: #2C2416;    /* Deep brown */
---color-text-secondary: #5C5244;  /* Medium brown */
---color-text-muted: #8B7E6A;      /* Light brown */
-
-/* Accent - Sienna/Burgundy (classic library feel) */
---color-accent: #8B4513;          /* Sienna */
---color-accent-hover: #A0522D;    /* Lighter sienna */
-
-/* Borders */
---color-border: #D4C9B8;          /* Warm tan */
---color-border-subtle: #E5DED2;   /* Light tan */
-
-/* Status colors */
---color-reading: #8B4513;         /* Sienna */
---color-finished: #2E7D4A;        /* Forest green */
---color-queued: #2E7D4A;          /* Forest green */
---color-interested: #7B5C9E;      /* Dusty purple */
-
-/* Shadows - Brown-tinted, soft */
---shadow-md: 0 4px 6px -1px rgba(44, 36, 22, 0.1),
-             0 2px 4px -1px rgba(44, 36, 22, 0.06);
-
-/* Spacing (4px base) */
---space-1: 4px;
---space-2: 8px;
---space-4: 16px;
---space-6: 24px;
---space-8: 32px;
+/* Core Colors */
+--color-bg-primary: #f7f4ef;       /* Warm paper */
+--color-surface: #ffffff;           /* Card backgrounds */
+--color-text-primary: #2b2418;     /* Dark brown ink */
+--color-accent: #8b5e34;           /* Bronze (primary) */
+--color-accent-alt: #2f6f6d;       /* Teal (secondary) */
+--color-warning: #b07a2f;          /* Amber (stale states) */
 
 /* Typography */
---font-display: 'Crimson Pro', Georgia, serif;
+--font-display: 'Libre Baskerville', Georgia, serif;
+--font-body: 'IBM Plex Sans', system-ui, sans-serif;
 --font-mono: 'IBM Plex Mono', monospace;
---text-sm: 0.875rem;
---text-base: 1rem;
---text-xl: 1.375rem;
---text-3xl: 2.25rem;
 
-/* Transitions */
---duration-fast: 150ms;
---duration-normal: 250ms;
---ease-out: cubic-bezier(0, 0, 0.2, 1);
+/* Card Dimensions */
+Card size: 320px × 320px (fixed)
+Border radius: 18px (--radius-xl)
 ```
 
 ### Styling Patterns
 
 1. **Always use CSS variables** — Never hardcode colors or spacing
 2. **Component styles in Shadow DOM** — Styles in `styles()` are scoped
-3. **Fallbacks for warm theme** — `var(--color-accent, #8B4513)`
+3. **Follow card patterns** — Headers use gradients, stats use strips, progress uses playback bars
 4. **Responsive with media queries** — Mobile-first, breakpoints at 600px, 900px, 1200px
 5. **Soft shadows** — Use brown-tinted rgba shadows for warm aesthetic
 
@@ -667,5 +664,4 @@ const [dashboard, stats] = await Promise.all([
 ```
 
 ---
-
 

@@ -8,7 +8,6 @@ import '../shared/bt-loading.js';
 import '../shared/bt-book-cover.js';
 import '../shared/bt-progress-bar.js';
 import '../shared/bt-status-badge.js';
-import './bt-checkin-modal.js';
 import './bt-reading-history.js';
 
 export class BtBookDetail extends BaseComponent {
@@ -22,8 +21,8 @@ export class BtBookDetail extends BaseComponent {
             loading: true,
             error: null,
             book: null,
-            showCheckinModal: false,
-            historyExpanded: false
+            historyExpanded: false,
+            objectives: []
         });
     }
 
@@ -276,14 +275,14 @@ export class BtBookDetail extends BaseComponent {
             }
 
             /* Check-in button */
-            .checkin-section {
+            .log-update-section {
                 display: flex;
                 align-items: center;
                 gap: 16px;
                 flex-wrap: wrap;
             }
 
-            .checkin-btn {
+            .log-update-btn {
                 background: var(--accent, #8B4513) !important;
                 border-color: var(--accent, #8B4513) !important;
                 color: white !important;
@@ -291,65 +290,13 @@ export class BtBookDetail extends BaseComponent {
                 font-weight: 500;
             }
 
-            .checkin-btn:hover:not(:disabled) {
+            .log-update-btn:hover:not(:disabled) {
                 background: var(--accent-hover, #A0522D) !important;
             }
 
             .last-read {
                 font-size: 0.8125rem;
                 color: var(--text-muted, #8B7E6A);
-            }
-
-            /* Checkin modal overlay */
-            .checkin-modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
-            }
-
-            .checkin-modal-content {
-                background: var(--surface, #FFFFFF);
-                border-radius: 12px;
-                padding: 24px;
-                max-width: 480px;
-                width: 90%;
-                max-height: 90vh;
-                overflow-y: auto;
-                box-shadow: var(--shadow-lg, 0 10px 25px rgba(44, 36, 22, 0.2));
-            }
-
-            .checkin-modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-
-            .checkin-modal-title {
-                font-size: 1.125rem;
-                font-weight: 600;
-                color: var(--text, #2C2416);
-            }
-
-            .close-modal-btn {
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: var(--text-muted, #8B7E6A);
-                padding: 4px;
-                line-height: 1;
-            }
-
-            .close-modal-btn:hover {
-                color: var(--text, #2C2416);
             }
 
             /* Reading history section */
@@ -390,6 +337,39 @@ export class BtBookDetail extends BaseComponent {
                 margin-top: 12px;
             }
 
+            .objective-list {
+                display: grid;
+                gap: 8px;
+                margin-top: 8px;
+            }
+
+            .objective-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 8px;
+                border-radius: 8px;
+                background: var(--bg-tertiary, #EDE6DB);
+                border: 1px solid var(--border, #D4C9B8);
+                font-size: 0.875rem;
+            }
+
+            .objective-item input {
+                cursor: pointer;
+            }
+
+            .objective-swatch {
+                width: 10px;
+                height: 10px;
+                border-radius: 999px;
+                flex-shrink: 0;
+            }
+
+            .objective-empty {
+                font-size: 0.8125rem;
+                color: var(--text-muted, #8B7E6A);
+            }
+
             @media (max-width: 768px) {
                 .book-detail {
                     grid-template-columns: 1fr;
@@ -424,7 +404,7 @@ export class BtBookDetail extends BaseComponent {
                     margin-right: 0;
                 }
 
-                .checkin-section {
+                .log-update-section {
                     flex-direction: column;
                     align-items: stretch;
                 }
@@ -451,13 +431,6 @@ export class BtBookDetail extends BaseComponent {
     }
 
     _renderBookDetail(book) {
-        const pathsHtml = book.paths && book.paths.length
-            ? `<div class="detail-row">
-                   <span class="detail-label">Learning Paths</span>
-                   <span>${book.paths.map(p => `<span class="path-tag" style="border-left: 2px solid ${p.color}">${this.escapeHtml(p.name)}</span>`).join('')}</span>
-               </div>`
-            : '';
-
         const tagsHtml = book.tags && book.tags.length
             ? `<div class="tags-list">${book.tags.map(t => `<span class="tag">${this.escapeHtml(t.name)}</span>`).join('')}</div>`
             : '';
@@ -508,18 +481,20 @@ export class BtBookDetail extends BaseComponent {
             </div>
         `;
 
-        const showCheckinSection = ['reading'].includes(book.status);
+        const showLogUpdateSection = true;
         const showHistorySection = ['reading', 'finished', 'abandoned'].includes(book.status);
         const sessionCount = book.reading_sessions?.length || 0;
+        const objectives = this.state.objectives || [];
+        const selectedObjectives = new Set((book.paths || []).map(path => path.id));
         const lastReadDate = book.last_read_at ? new Date(book.last_read_at).toLocaleDateString('en-US', {
             month: 'short', day: 'numeric', year: 'numeric'
         }) : null;
 
-        const checkinSection = showCheckinSection ? `
+        const logUpdateSection = showLogUpdateSection ? `
             <div class="section">
                 <h3>Reading Progress</h3>
-                <div class="checkin-section">
-                    <button class="checkin-btn" ref="checkinBtn">Check In</button>
+                <div class="log-update-section">
+                    <button class="log-update-btn" ref="logUpdateBtn">Log Update</button>
                     ${lastReadDate ? `<span class="last-read">Last read: ${lastReadDate}</span>` : ''}
                     ${sessionCount > 0 ? `<span class="last-read">${sessionCount} session${sessionCount !== 1 ? 's' : ''}</span>` : ''}
                 </div>
@@ -530,7 +505,7 @@ export class BtBookDetail extends BaseComponent {
             <div class="history-section">
                 <button class="history-toggle ${this.state.historyExpanded ? 'expanded' : ''}" ref="historyToggle">
                     <span class="chevron">&#9654;</span>
-                    Reading History
+                    Legacy Reading Sessions
                 </button>
                 ${this.state.historyExpanded ? `
                     <div class="history-content">
@@ -539,6 +514,25 @@ export class BtBookDetail extends BaseComponent {
                 ` : ''}
             </div>
         ` : '';
+
+        const objectivesSection = `
+            <div class="section">
+                <h4>Objectives</h4>
+                ${objectives.length === 0 ? `
+                    <div class="objective-empty">No objectives yet. Create one in Objectives.</div>
+                ` : `
+                    <div class="objective-list">
+                        ${objectives.map(obj => `
+                            <label class="objective-item">
+                                <input type="checkbox" data-objective-id="${obj.id}" ${selectedObjectives.has(obj.id) ? 'checked' : ''}>
+                                <span class="objective-swatch" style="background: ${obj.color || '#8B4513'}"></span>
+                                <span>${this.escapeHtml(obj.name)}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `}
+            </div>
+        `;
 
         return `
             <div class="book-detail">
@@ -600,7 +594,6 @@ export class BtBookDetail extends BaseComponent {
 
                     ${sourceBookHtml}
                     ${ideaSourceHtml}
-                    ${pathsHtml}
                     ${tagsHtml}
 
                     ${formatHtml}
@@ -609,7 +602,9 @@ export class BtBookDetail extends BaseComponent {
                         <div class="description">${this.escapeHtml(book.description)}</div>
                     ` : ''}
 
-                    ${checkinSection}
+                    ${objectivesSection}
+
+                    ${logUpdateSection}
 
                     ${historySection}
 
@@ -620,23 +615,11 @@ export class BtBookDetail extends BaseComponent {
                     </div>
                 </div>
             </div>
-
-            ${this.state.showCheckinModal ? `
-                <div class="checkin-modal-overlay" ref="modalOverlay">
-                    <div class="checkin-modal-content">
-                        <div class="checkin-modal-header">
-                            <span class="checkin-modal-title">Log Reading Progress</span>
-                            <button class="close-modal-btn" ref="closeModalBtn">&times;</button>
-                        </div>
-                        <bt-checkin-modal ref="checkinModal"></bt-checkin-modal>
-                    </div>
-                </div>
-            ` : ''}
         `;
     }
 
     afterRender() {
-        const { book, showCheckinModal, historyExpanded } = this.state;
+        const { book, historyExpanded } = this.state;
         if (!book) return;
 
         // Status change
@@ -655,45 +638,11 @@ export class BtBookDetail extends BaseComponent {
         });
 
         // Check-in button
-        const checkinBtn = this.ref('checkinBtn');
-        if (checkinBtn) {
-            checkinBtn.addEventListener('click', () => {
-                this.setState({ showCheckinModal: true });
+        const logUpdateBtn = this.ref('logUpdateBtn');
+        if (logUpdateBtn) {
+            logUpdateBtn.addEventListener('click', () => {
+                this.emit('open-log-update', { bookId: book.book_id });
             });
-        }
-
-        // Check-in modal
-        if (showCheckinModal) {
-            const checkinModal = this.ref('checkinModal');
-            const closeModalBtn = this.ref('closeModalBtn');
-            const modalOverlay = this.ref('modalOverlay');
-
-            if (checkinModal) {
-                checkinModal.book = book;
-                checkinModal.addEventListener('checkin-complete', async (e) => {
-                    this.setState({ showCheckinModal: false });
-                    await this._loadBook(book.book_id);
-                    this.emit('book-updated', { bookId: book.book_id });
-                    this.emit('toast', { message: 'Progress logged!', type: 'success' });
-                });
-                checkinModal.addEventListener('cancel', () => {
-                    this.setState({ showCheckinModal: false });
-                });
-            }
-
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', () => {
-                    this.setState({ showCheckinModal: false });
-                });
-            }
-
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) {
-                        this.setState({ showCheckinModal: false });
-                    }
-                });
-            }
         }
 
         // History toggle
@@ -703,6 +652,22 @@ export class BtBookDetail extends BaseComponent {
                 this.setState({ historyExpanded: !historyExpanded });
             });
         }
+
+        // Objectives selection
+        this.$$('input[data-objective-id]').forEach(input => {
+            input.addEventListener('change', async () => {
+                const selected = Array.from(this.$$('input[data-objective-id]'))
+                    .filter(item => item.checked)
+                    .map(item => parseInt(item.dataset.objectiveId, 10));
+                try {
+                    await api.updateBookObjectives(book.book_id, selected);
+                    await this._loadBook(book.book_id);
+                    this.emit('book-updated', { bookId: book.book_id });
+                } catch (error) {
+                    this.emit('toast', { message: 'Failed to update objectives', type: 'error' });
+                }
+            });
+        });
 
         // Reading history component
         if (historyExpanded) {
@@ -746,6 +711,19 @@ export class BtBookDetail extends BaseComponent {
                 this.emit('show-book', { bookId });
             });
         });
+    }
+
+    async onConnect() {
+        await this._loadObjectives();
+    }
+
+    async _loadObjectives() {
+        try {
+            const objectives = await api.getPaths();
+            this.setState({ objectives: objectives || [] });
+        } catch (error) {
+            console.error('Failed to load objectives:', error);
+        }
     }
 
     async _updateBook(data) {

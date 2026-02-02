@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tracker Design System - Card Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           BOOK TRACKER DESIGN SYSTEM
+           Cornerstone Reference Implementation
+           ============================================================ */
+
+        /* ------------------------------------------------------------
+           CSS Custom Properties (Design Tokens)
+           ------------------------------------------------------------ */
+        :root {
+            /* Background Colors */
+            --color-bg-primary: #f7f4ef;
+            --color-bg-secondary: #f1ede6;
+            --color-bg-tertiary: #fbfaf8;
+            --color-surface: #ffffff;
+
+            /* Text Colors */
+            --color-text-primary: #2b2418;
+            --color-text-secondary: #6b6051;
+            --color-text-muted: #8a7d6b;
+            --color-text-inverse: #ffffff;
+
+            /* Accent Colors */
+            --color-accent: #8b5e34;
+            --color-accent-hover: #9a6a3e;
+            --color-accent-muted: rgba(139, 94, 52, 0.15);
+            --color-accent-alt: #2f6f6d;
+            --color-accent-alt-muted: rgba(47, 111, 109, 0.15);
+
+            /* Status Colors */
+            --color-success: #2f8f5b;
+            --color-success-muted: rgba(47, 143, 91, 0.15);
+            --color-warning: #b07a2f;
+            --color-warning-muted: rgba(176, 122, 47, 0.15);
+            --color-error: #c7514d;
+            --color-error-muted: rgba(199, 81, 77, 0.15);
+
+            /* Border Colors */
+            --color-border: #e3ddd1;
+            --color-border-subtle: #efe9df;
+
+            /* Typography */
+            --font-display: 'Libre Baskerville', Georgia, serif;
+            --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+
+            /* Font Sizes */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.375rem;
+            --text-2xl: 1.75rem;
+            --text-3xl: 2.25rem;
+
+            /* Font Weights */
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --radius-full: 9999px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(40, 32, 20, 0.04),
+                         0 2px 4px rgba(40, 32, 20, 0.06);
+            --shadow-md: 0 8px 18px rgba(40, 32, 20, 0.08),
+                         0 2px 6px rgba(40, 32, 20, 0.06);
+            --shadow-lg: 0 12px 28px rgba(40, 32, 20, 0.1),
+                         0 6px 12px rgba(40, 32, 20, 0.06);
+            --shadow-xl: 0 18px 40px rgba(40, 32, 20, 0.12),
+                         0 10px 18px rgba(40, 32, 20, 0.08);
+            --shadow-cover: 0 6px 16px rgba(0, 0, 0, 0.3);
+
+            /* Transitions */
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --duration-slow: 350ms;
+            --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+            /* Focus */
+            --focus-ring: 0 0 0 2px var(--color-bg-primary),
+                          0 0 0 4px var(--color-accent);
+        }
+
+        /* ------------------------------------------------------------
+           Reset & Base Styles
+           ------------------------------------------------------------ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.5;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        /* ------------------------------------------------------------
+           Page Layout (Reference Only)
+           ------------------------------------------------------------ */
+        .page-header {
+            max-width: 800px;
+            margin-bottom: 48px;
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--space-2);
+        }
+
+        .page-subtitle {
+            font-size: var(--text-lg);
+            color: var(--color-text-muted);
+        }
+
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: var(--text-xl);
+            margin-bottom: 8px;
+        }
+
+        .section-desc {
+            color: var(--color-text-secondary);
+            font-size: var(--text-sm);
+        }
+
+        .card-grid {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .card-label {
+            font-size: var(--text-xs);
+            font-weight: var(--font-semibold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* ------------------------------------------------------------
+           CORNERSTONE COMPONENT: Warm Playback Card
+           ------------------------------------------------------------ */
+        .card-warm-playback {
+            width: 320px;
+            height: 320px;
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--duration-fast) var(--ease-out),
+                        box-shadow var(--duration-normal) var(--ease-out);
+        }
+
+        .card-warm-playback:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Card Header */
+        .card-warm-playback .header {
+            background: linear-gradient(135deg, var(--color-accent) 0%, #a06840 100%);
+            padding: 16px 20px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            color: var(--color-text-inverse);
+            flex-shrink: 0;
+        }
+
+        .card-warm-playback .header.teal {
+            background: linear-gradient(135deg, #2f6f6d 0%, #3a8583 100%);
+        }
+
+        .card-warm-playback .header.warning {
+            background: linear-gradient(135deg, #b07a2f 0%, #c98f3a 100%);
+        }
+
+        .card-warm-playback .header.purple {
+            background: linear-gradient(135deg, #7b5c9e 0%, #8d6db0 100%);
+        }
+
+        /* Book Cover */
+        .card-warm-playback .cover {
+            width: 56px;
+            height: 80px;
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+            box-shadow: var(--shadow-cover);
+            background-size: cover;
+            background-position: center;
+            background-color: #c8b7a6;
+        }
+
+        /* Sample covers for demo */
+        .cover-atomic { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .cover-design { background: linear-gradient(135deg, #c9463d 0%, #a23b34 100%); }
+        .cover-sapiens { background: linear-gradient(135deg, #e8c547 0%, #d4a843 100%); }
+        .cover-think { background: linear-gradient(135deg, #2d5a27 0%, #3d7a37 100%); }
+
+        /* Book Info */
+        .card-warm-playback .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-warm-playback .book-title {
+            font-weight: var(--font-semibold);
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+
+        .card-warm-playback .book-author {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Header Stat (Percentage) */
+        .card-warm-playback .header-stat {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .card-warm-playback .header-stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: var(--font-bold);
+            line-height: 1;
+        }
+
+        .card-warm-playback .header-stat-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+        }
+
+        /* Card Body */
+        .card-warm-playback .body {
+            padding: 16px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Learning Path Tags */
+        .card-warm-playback .path-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .card-warm-playback .path-tag {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-weight: var(--font-medium);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-warm-playback .path-tag .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Path tag color variations */
+        .path-tag.bronze {
+            background: rgba(139, 94, 52, 0.12);
+            color: #8b5e34;
+        }
+        .path-tag.bronze .dot { background: #8b5e34; }
+
+        .path-tag.teal {
+            background: rgba(47, 111, 109, 0.12);
+            color: #2f6f6d;
+        }
+        .path-tag.teal .dot { background: #2f6f6d; }
+
+        .path-tag.blue {
+            background: rgba(88, 166, 255, 0.15);
+            color: #3b8eea;
+        }
+        .path-tag.blue .dot { background: #58a6ff; }
+
+        .path-tag.purple {
+            background: rgba(123, 92, 158, 0.12);
+            color: #7b5c9e;
+        }
+        .path-tag.purple .dot { background: #7b5c9e; }
+
+        .path-tag.warning {
+            background: rgba(176, 122, 47, 0.15);
+            color: #b07a2f;
+        }
+
+        .path-tag.neutral {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-secondary);
+        }
+
+        /* Stats Strip */
+        .card-warm-playback .stats-strip {
+            display: flex;
+            gap: 1px;
+            background: var(--color-border-subtle);
+            margin: 0 -20px 12px;
+            border-top: 1px solid var(--color-border-subtle);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .card-warm-playback .strip-stat {
+            flex: 1;
+            padding: 10px 8px;
+            text-align: center;
+            background: var(--color-surface);
+        }
+
+        .card-warm-playback .strip-stat-value {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: var(--font-semibold);
+            color: var(--color-text-primary);
+        }
+
+        .card-warm-playback .strip-stat-value.accent {
+            color: var(--color-accent);
+        }
+
+        .card-warm-playback .strip-stat-value.teal {
+            color: #2f6f6d;
+        }
+
+        .card-warm-playback .strip-stat-value.warning {
+            color: var(--color-warning);
+        }
+
+        .card-warm-playback .strip-stat-label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        /* Playback Progress Bar */
+        .card-warm-playback .playback-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card-warm-playback .time {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            width: 36px;
+        }
+
+        .card-warm-playback .time.end {
+            text-align: right;
+        }
+
+        .card-warm-playback .bar {
+            flex: 1;
+            height: 6px;
+            background: var(--color-bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .card-warm-playback .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent) 0%, #a06840 100%);
+            border-radius: 3px;
+            transition: width var(--duration-normal) var(--ease-out);
+        }
+
+        .card-warm-playback .bar-fill.teal {
+            background: linear-gradient(90deg, #2f6f6d 0%, #3a8583 100%);
+        }
+
+        .card-warm-playback .bar-fill.warning {
+            background: linear-gradient(90deg, #b07a2f 0%, #c98f3a 100%);
+        }
+
+        /* Increment Controls */
+        .card-warm-playback .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .card-warm-playback .ctrl-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: var(--font-semibold);
+            font-family: var(--font-mono);
+            transition: all var(--duration-fast) var(--ease-out);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-warm-playback .ctrl-btn:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        .card-warm-playback .ctrl-btn:focus {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        .card-warm-playback .ctrl-btn.primary {
+            width: 48px;
+            height: 48px;
+            background: var(--color-accent);
+            color: var(--color-text-inverse);
+            border: none;
+            font-size: 1.25rem;
+        }
+
+        .card-warm-playback .ctrl-btn.primary:hover {
+            background: var(--color-accent-hover);
+            transform: scale(1.05);
+        }
+
+        .card-warm-playback .ctrl-btn.primary.teal {
+            background: #2f6f6d;
+        }
+
+        .card-warm-playback .ctrl-btn.primary.teal:hover {
+            background: #3a8583;
+        }
+
+        .card-warm-playback .ctrl-btn.primary.warning {
+            background: #b07a2f;
+        }
+
+        .card-warm-playback .ctrl-btn.primary.warning:hover {
+            background: #c98f3a;
+        }
+
+        /* ------------------------------------------------------------
+           Color Swatches (Reference)
+           ------------------------------------------------------------ */
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .swatch {
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .swatch-color {
+            height: 64px;
+        }
+
+        .swatch-info {
+            padding: 12px;
+        }
+
+        .swatch-name {
+            font-size: var(--text-sm);
+            font-weight: var(--font-semibold);
+            margin-bottom: 4px;
+        }
+
+        .swatch-value {
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            color: var(--color-text-muted);
+        }
+
+        /* ------------------------------------------------------------
+           Typography Samples (Reference)
+           ------------------------------------------------------------ */
+        .type-sample {
+            margin-bottom: 16px;
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            color: var(--color-text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* ------------------------------------------------------------
+           Code Block (Reference)
+           ------------------------------------------------------------ */
+        .code-block {
+            background: #1e1a17;
+            color: #f1ede6;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .code-block .comment {
+            color: #8a7d6b;
+        }
+
+        .code-block .property {
+            color: #58a6ff;
+        }
+
+        .code-block .value {
+            color: #7ee787;
+        }
+
+        .code-block .tag {
+            color: #ff7b72;
+        }
+
+        .code-block .class {
+            color: #d2a8ff;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <h1 class="page-title">Book Tracker Design System</h1>
+        <p class="page-subtitle">Cornerstone reference implementation for the Warm Playback card component and design tokens.</p>
+    </header>
+
+    <!-- ============================================================
+         SECTION: Primary Card Examples
+         ============================================================ -->
+    <section class="section">
+        <div class="section-header">
+            <h2 class="section-title">Warm Playback Card</h2>
+            <p class="section-desc">The cornerstone component. Fixed 320x320px dimensions with gradient header, stats strip, playback bar, and increment controls.</p>
+        </div>
+
+        <div class="card-grid">
+
+            <!-- Default State (Bronze) -->
+            <div>
+                <div class="card-label">Default State (Bronze)</div>
+                <div class="card-warm-playback">
+                    <div class="header">
+                        <div class="cover cover-atomic"></div>
+                        <div class="info">
+                            <div class="book-title">Atomic Habits</div>
+                            <div class="book-author">James Clear</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value">67%</div>
+                            <div class="header-stat-label">Complete</div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="path-tags">
+                            <span class="path-tag blue">
+                                <span class="dot"></span>
+                                Self Improvement
+                            </span>
+                        </div>
+                        <div class="stats-strip">
+                            <div class="strip-stat">
+                                <div class="strip-stat-value accent">2d ago</div>
+                                <div class="strip-stat-label">Last Read</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">8d</div>
+                                <div class="strip-stat-label">Est. Left</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">Jan 5</div>
+                                <div class="strip-stat-label">Started</div>
+                            </div>
+                        </div>
+                        <div class="playback-bar">
+                            <span class="time">180</span>
+                            <div class="bar"><div class="bar-fill" style="width: 67%"></div></div>
+                            <span class="time end">270</span>
+                        </div>
+                        <div class="controls">
+                            <button class="ctrl-btn">-10</button>
+                            <button class="ctrl-btn">-1</button>
+                            <button class="ctrl-btn primary">+</button>
+                            <button class="ctrl-btn">+1</button>
+                            <button class="ctrl-btn">+10</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teal Variant -->
+            <div>
+                <div class="card-label">Teal Variant</div>
+                <div class="card-warm-playback">
+                    <div class="header teal">
+                        <div class="cover cover-design"></div>
+                        <div class="info">
+                            <div class="book-title">The Design of Everyday Things</div>
+                            <div class="book-author">Don Norman</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value">40%</div>
+                            <div class="header-stat-label">Complete</div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="path-tags">
+                            <span class="path-tag bronze">
+                                <span class="dot"></span>
+                                UX Design
+                            </span>
+                            <span class="path-tag teal">
+                                <span class="dot"></span>
+                                Product
+                            </span>
+                        </div>
+                        <div class="stats-strip">
+                            <div class="strip-stat">
+                                <div class="strip-stat-value teal">Today</div>
+                                <div class="strip-stat-label">Last Read</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">28d</div>
+                                <div class="strip-stat-label">Est. Left</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">Jan 12</div>
+                                <div class="strip-stat-label">Started</div>
+                            </div>
+                        </div>
+                        <div class="playback-bar">
+                            <span class="time">147</span>
+                            <div class="bar"><div class="bar-fill teal" style="width: 40%"></div></div>
+                            <span class="time end">368</span>
+                        </div>
+                        <div class="controls">
+                            <button class="ctrl-btn">-10</button>
+                            <button class="ctrl-btn">-1</button>
+                            <button class="ctrl-btn primary teal">+</button>
+                            <button class="ctrl-btn">+1</button>
+                            <button class="ctrl-btn">+10</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning/Stale State -->
+            <div>
+                <div class="card-label">Warning / Stale State</div>
+                <div class="card-warm-playback">
+                    <div class="header warning">
+                        <div class="cover cover-think"></div>
+                        <div class="info">
+                            <div class="book-title">Don't Make Me Think</div>
+                            <div class="book-author">Steve Krug</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value">35%</div>
+                            <div class="header-stat-label">Complete</div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="path-tags">
+                            <span class="path-tag bronze">
+                                <span class="dot"></span>
+                                UX Design
+                            </span>
+                            <span class="path-tag warning">14 days stale</span>
+                        </div>
+                        <div class="stats-strip">
+                            <div class="strip-stat">
+                                <div class="strip-stat-value warning">14d ago</div>
+                                <div class="strip-stat-label">Last Read</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">--</div>
+                                <div class="strip-stat-label">Est. Left</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">Dec 20</div>
+                                <div class="strip-stat-label">Started</div>
+                            </div>
+                        </div>
+                        <div class="playback-bar">
+                            <span class="time">72</span>
+                            <div class="bar"><div class="bar-fill warning" style="width: 35%"></div></div>
+                            <span class="time end">206</span>
+                        </div>
+                        <div class="controls">
+                            <button class="ctrl-btn">-10</button>
+                            <button class="ctrl-btn">-1</button>
+                            <button class="ctrl-btn primary warning">+</button>
+                            <button class="ctrl-btn">+1</button>
+                            <button class="ctrl-btn">+10</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiple Paths -->
+            <div>
+                <div class="card-label">Multiple Learning Paths</div>
+                <div class="card-warm-playback">
+                    <div class="header purple">
+                        <div class="cover cover-sapiens"></div>
+                        <div class="info">
+                            <div class="book-title">Sapiens: A Brief History</div>
+                            <div class="book-author">Yuval Noah Harari</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value">20%</div>
+                            <div class="header-stat-label">Complete</div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="path-tags">
+                            <span class="path-tag purple">
+                                <span class="dot"></span>
+                                History
+                            </span>
+                            <span class="path-tag neutral">1 of 3 in path</span>
+                        </div>
+                        <div class="stats-strip">
+                            <div class="strip-stat">
+                                <div class="strip-stat-value accent">5d ago</div>
+                                <div class="strip-stat-label">Last Read</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">36d</div>
+                                <div class="strip-stat-label">Est. Left</div>
+                            </div>
+                            <div class="strip-stat">
+                                <div class="strip-stat-value">Jan 20</div>
+                                <div class="strip-stat-label">Started</div>
+                            </div>
+                        </div>
+                        <div class="playback-bar">
+                            <span class="time">89</span>
+                            <div class="bar"><div class="bar-fill" style="width: 20%"></div></div>
+                            <span class="time end">443</span>
+                        </div>
+                        <div class="controls">
+                            <button class="ctrl-btn">-10</button>
+                            <button class="ctrl-btn">-1</button>
+                            <button class="ctrl-btn primary">+</button>
+                            <button class="ctrl-btn">+1</button>
+                            <button class="ctrl-btn">+10</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: Color Palette
+         ============================================================ -->
+    <section class="section">
+        <div class="section-header">
+            <h2 class="section-title">Color Palette</h2>
+            <p class="section-desc">Core colors used throughout the design system.</p>
+        </div>
+
+        <div class="swatch-grid">
+            <div class="swatch">
+                <div class="swatch-color" style="background: #f7f4ef;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">BG Primary</div>
+                    <div class="swatch-value">#f7f4ef</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #f1ede6;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">BG Secondary</div>
+                    <div class="swatch-value">#f1ede6</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #ffffff; border-bottom: 1px solid #e3ddd1;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Surface</div>
+                    <div class="swatch-value">#ffffff</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #2b2418;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Text Primary</div>
+                    <div class="swatch-value">#2b2418</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #6b6051;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Text Secondary</div>
+                    <div class="swatch-value">#6b6051</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #8a7d6b;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Text Muted</div>
+                    <div class="swatch-value">#8a7d6b</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #8b5e34;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Accent (Bronze)</div>
+                    <div class="swatch-value">#8b5e34</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #2f6f6d;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Accent Alt (Teal)</div>
+                    <div class="swatch-value">#2f6f6d</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #b07a2f;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Warning</div>
+                    <div class="swatch-value">#b07a2f</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #2f8f5b;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Success</div>
+                    <div class="swatch-value">#2f8f5b</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #7b5c9e;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Purple</div>
+                    <div class="swatch-value">#7b5c9e</div>
+                </div>
+            </div>
+            <div class="swatch">
+                <div class="swatch-color" style="background: #e3ddd1;"></div>
+                <div class="swatch-info">
+                    <div class="swatch-name">Border</div>
+                    <div class="swatch-value">#e3ddd1</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: Typography
+         ============================================================ -->
+    <section class="section">
+        <div class="section-header">
+            <h2 class="section-title">Typography</h2>
+            <p class="section-desc">Font families and type scale.</p>
+        </div>
+
+        <div class="type-sample">
+            <div class="type-label">Display: Libre Baskerville</div>
+            <div style="font-family: var(--font-display); font-size: var(--text-2xl); font-weight: var(--font-bold);">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="type-sample">
+            <div class="type-label">Body: IBM Plex Sans</div>
+            <div style="font-family: var(--font-body); font-size: var(--text-base);">
+                The quick brown fox jumps over the lazy dog. Reading is a journey of discovery.
+            </div>
+        </div>
+
+        <div class="type-sample">
+            <div class="type-label">Mono: IBM Plex Mono</div>
+            <div style="font-family: var(--font-mono); font-size: var(--text-base);">
+                180 / 270 pages | 67% complete | Jan 5, 2024
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: Code Reference
+         ============================================================ -->
+    <section class="section">
+        <div class="section-header">
+            <h2 class="section-title">HTML Structure Reference</h2>
+            <p class="section-desc">Copy-paste ready HTML for the Warm Playback Card.</p>
+        </div>
+
+        <div class="code-block"><span class="comment">&lt;!-- Warm Playback Card --&gt;</span>
+<span class="tag">&lt;div</span> <span class="class">class="card-warm-playback"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="class">class="header"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="cover"</span><span class="tag">&gt;&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="info"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="book-title"</span><span class="tag">&gt;</span>Book Title<span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="book-author"</span><span class="tag">&gt;</span>Author Name<span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="header-stat"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="header-stat-value"</span><span class="tag">&gt;</span>67%<span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="header-stat-label"</span><span class="tag">&gt;</span>Complete<span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;div</span> <span class="class">class="body"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="path-tags"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;span</span> <span class="class">class="path-tag blue"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;span</span> <span class="class">class="dot"</span><span class="tag">&gt;&lt;/span&gt;</span>
+                Path Name
+            <span class="tag">&lt;/span&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="stats-strip"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="strip-stat"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-value accent"</span><span class="tag">&gt;</span>2d ago<span class="tag">&lt;/div&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-label"</span><span class="tag">&gt;</span>Last Read<span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="strip-stat"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-value"</span><span class="tag">&gt;</span>28d<span class="tag">&lt;/div&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-label"</span><span class="tag">&gt;</span>Est. Left<span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="strip-stat"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-value"</span><span class="tag">&gt;</span>Jan 5<span class="tag">&lt;/div&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="strip-stat-label"</span><span class="tag">&gt;</span>Started<span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="playback-bar"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;span</span> <span class="class">class="time"</span><span class="tag">&gt;</span>180<span class="tag">&lt;/span&gt;</span>
+            <span class="tag">&lt;div</span> <span class="class">class="bar"</span><span class="tag">&gt;</span>
+                <span class="tag">&lt;div</span> <span class="class">class="bar-fill"</span> <span class="property">style=</span><span class="value">"width: 67%"</span><span class="tag">&gt;&lt;/div&gt;</span>
+            <span class="tag">&lt;/div&gt;</span>
+            <span class="tag">&lt;span</span> <span class="class">class="time end"</span><span class="tag">&gt;</span>270<span class="tag">&lt;/span&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+        <span class="tag">&lt;div</span> <span class="class">class="controls"</span><span class="tag">&gt;</span>
+            <span class="tag">&lt;button</span> <span class="class">class="ctrl-btn"</span><span class="tag">&gt;</span>-10<span class="tag">&lt;/button&gt;</span>
+            <span class="tag">&lt;button</span> <span class="class">class="ctrl-btn"</span><span class="tag">&gt;</span>-1<span class="tag">&lt;/button&gt;</span>
+            <span class="tag">&lt;button</span> <span class="class">class="ctrl-btn primary"</span><span class="tag">&gt;</span>+<span class="tag">&lt;/button&gt;</span>
+            <span class="tag">&lt;button</span> <span class="class">class="ctrl-btn"</span><span class="tag">&gt;</span>+1<span class="tag">&lt;/button&gt;</span>
+            <span class="tag">&lt;button</span> <span class="class">class="ctrl-btn"</span><span class="tag">&gt;</span>+10<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
+    </section>
+
+</body>
+</html>

@@ -14,12 +14,14 @@ const API_BASE = window.location.hostname === 'localhost'
 // Cache TTL configuration (in milliseconds)
 const CACHE_TTL = {
     dashboard: 60 * 1000,      // 60 seconds
+    home: 60 * 1000,           // 60 seconds
     pipeline: 60 * 1000,       // 60 seconds
     books: 30 * 1000,          // 30 seconds
     book: 5 * 60 * 1000,       // 5 minutes
     paths: 60 * 1000,          // 60 seconds
     stats: 60 * 1000,          // 60 seconds
-    settings: 5 * 60 * 1000    // 5 minutes
+    settings: 5 * 60 * 1000,   // 5 minutes
+    activity: 30 * 1000        // 30 seconds
 };
 
 class ApiClient {
@@ -110,7 +112,7 @@ class ApiClient {
     }
 
     /**
-     * Internal fetch wrapper with auth handling
+     * IBM Plex Sansnal fetch wrapper with auth handling
      * @param {string} endpoint
      * @param {Object} options
      * @returns {Promise<*>}
@@ -192,6 +194,17 @@ class ApiClient {
     }
 
     // ==========================================
+    // Home API
+    // ==========================================
+
+    async getHome() {
+        return this.get('/home', {
+            cacheKey: 'home',
+            cacheTtl: CACHE_TTL.home
+        });
+    }
+
+    // ==========================================
     // Pipeline API
     // ==========================================
 
@@ -240,6 +253,7 @@ class ApiClient {
     async createBook(data) {
         const result = await this.post('/books', data);
         await this._invalidateBookCaches();
+        await cacheManager.delete('home');
         events.emit(EVENT_NAMES.BOOK_CREATED, result);
         return result;
     }
@@ -248,7 +262,16 @@ class ApiClient {
         const result = await this.patch(`/books/${bookId}`, data);
         await this._invalidateBookCaches();
         await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete('home');
         events.emit(EVENT_NAMES.BOOK_UPDATED, result);
+        return result;
+    }
+
+    async updateBookObjectives(bookId, objectiveIds) {
+        const result = await this.patch(`/books/${bookId}/objectives`, { objective_ids: objectiveIds });
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete('home');
         return result;
     }
 
@@ -313,6 +336,58 @@ class ApiClient {
         await this._invalidateBookCaches();
         await cacheManager.delete(`book:${bookId}`);
         await cacheManager.delete(`sessions:${bookId}`);
+    }
+
+    // ==========================================
+    // Progress Updates API
+    // ==========================================
+
+    async logProgress(bookId, data) {
+        const result = await this.post(`/books/${bookId}/progress`, data);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`progress:${bookId}`);
+        await cacheManager.deleteByPrefix('activity:');
+        events.emit(EVENT_NAMES.BOOK_UPDATED, result.book);
+        return result;
+    }
+
+    async getProgressUpdates(bookId) {
+        return this.get(`/books/${bookId}/progress`, {
+            cacheKey: `progress:${bookId}`,
+            cacheTtl: CACHE_TTL.book
+        });
+    }
+
+    async updateProgressUpdate(bookId, updateId, data) {
+        const result = await this.patch(`/books/${bookId}/progress/${updateId}`, data);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`progress:${bookId}`);
+        await cacheManager.deleteByPrefix('activity:');
+        return result;
+    }
+
+    async deleteProgressUpdate(bookId, updateId) {
+        await this.delete(`/books/${bookId}/progress/${updateId}`);
+        await this._invalidateBookCaches();
+        await cacheManager.delete(`book:${bookId}`);
+        await cacheManager.delete(`progress:${bookId}`);
+        await cacheManager.deleteByPrefix('activity:');
+    }
+
+    async getActivity(params = {}) {
+        const query = new URLSearchParams({
+            limit: params.limit || 20,
+            offset: params.offset || 0
+        });
+        if (params.status) query.append('status', params.status);
+        const cacheKey = `activity:${params.limit || 20}:${params.offset || 0}:${params.status || 'all'}`;
+        return this.get(`/activity?${query.toString()}`, {
+            cacheKey,
+            cacheTtl: CACHE_TTL.activity,
+            skipCache: !!params.skipCache
+        });
     }
 
     // ==========================================
@@ -422,6 +497,7 @@ class ApiClient {
         await cacheManager.delete('dashboard');
         await cacheManager.delete('pipeline');
         await cacheManager.delete('stats');
+        await cacheManager.deleteByPrefix('activity:');
     }
 
     /**

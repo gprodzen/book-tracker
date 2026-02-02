@@ -30,11 +30,11 @@ export class BtNav extends BaseComponent {
                 align-items: center;
                 height: var(--nav-height, 64px);
                 padding: 0 var(--space-6, 24px);
-                background: rgba(250, 247, 242, 0.85);
+                background: rgba(247, 244, 239, 0.9);
                 backdrop-filter: blur(20px) saturate(180%);
                 -webkit-backdrop-filter: blur(20px) saturate(180%);
-                border-bottom: 1px solid rgba(212, 201, 184, 0.5);
-                box-shadow: 0 1px 3px rgba(44, 36, 22, 0.04);
+                border-bottom: 1px solid rgba(227, 221, 209, 0.6);
+                box-shadow: 0 1px 3px rgba(40, 32, 20, 0.04);
             }
 
             .nav-brand {
@@ -82,7 +82,7 @@ export class BtNav extends BaseComponent {
 
             .nav-link:hover {
                 color: var(--color-text-primary, #2C2416);
-                background: rgba(237, 230, 219, 0.8);
+                background: rgba(241, 237, 230, 0.8);
             }
 
             .nav-link:active {
@@ -91,7 +91,7 @@ export class BtNav extends BaseComponent {
 
             .nav-link.active {
                 color: var(--color-accent, #8B4513);
-                background: rgba(139, 69, 19, 0.08);
+                background: rgba(139, 94, 52, 0.08);
             }
 
             /* Animated underline for active state */
@@ -102,7 +102,7 @@ export class BtNav extends BaseComponent {
                 left: 50%;
                 width: 0;
                 height: 2px;
-                background: var(--color-accent, #8B4513);
+                background: var(--color-accent, #8b5e34);
                 border-radius: var(--radius-full, 9999px);
                 transform: translateX(-50%);
                 transition: width var(--duration-normal, 250ms) var(--ease-out);
@@ -216,7 +216,7 @@ export class BtNav extends BaseComponent {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(250, 247, 242, 0.95);
+                background: rgba(247, 244, 239, 0.95);
                 backdrop-filter: blur(20px) saturate(180%);
                 -webkit-backdrop-filter: blur(20px) saturate(180%);
                 padding: var(--space-4, 16px);
@@ -273,7 +273,7 @@ export class BtNav extends BaseComponent {
                 color: var(--color-accent, #8B4513);
                 border-color: var(--color-accent, #8B4513);
                 border-left-width: 4px;
-                background: rgba(139, 69, 19, 0.06);
+                background: rgba(139, 94, 52, 0.06);
             }
 
             .mobile-logout {
@@ -319,9 +319,9 @@ export class BtNav extends BaseComponent {
         const authenticated = store.get('authenticated');
 
         const routes = [
-            { name: 'dashboard', label: 'Dashboard' },
+            { name: 'dashboard', label: 'Home' },
             { name: 'pipeline', label: 'Pipeline' },
-            { name: 'paths', label: 'Paths' },
+            { name: 'paths', label: 'Objectives' },
             { name: 'library', label: 'Library' },
             { name: 'settings', label: 'Settings' }
         ];

@@ -22,6 +22,13 @@ export class BtPipelineView extends BaseComponent {
             wipLimit: 5
         });
         this._draggedCard = null;
+        this._dragPlaceholder = null;
+        this._dragOriginColumn = null;
+        this._dragTargetColumn = null;
+        this._dragPointerId = null;
+        this._pointerOffset = null;
+        this._handlePointerMoveBound = this._handlePointerMove.bind(this);
+        this._handlePointerUpBound = this._handlePointerUp.bind(this);
     }
 
     styles() {
@@ -166,11 +173,10 @@ export class BtPipelineView extends BaseComponent {
 
             /* Drop zone states */
             .column-books.drag-over {
-                background: var(--color-accent-subtle, rgba(139, 69, 19, 0.08));
-                border: 2px dashed var(--color-accent, #8B4513);
+                background: rgba(139, 94, 52, 0.08);
+                outline: 2px solid var(--color-accent, #8b5e34);
+                outline-offset: -2px;
                 border-radius: var(--radius-lg, 8px);
-                margin: var(--space-3, 12px);
-                margin-top: 0;
             }
 
             .column-books.drag-over::before {
@@ -179,9 +185,16 @@ export class BtPipelineView extends BaseComponent {
                 align-items: center;
                 justify-content: center;
                 padding: var(--space-4, 16px);
-                color: var(--color-accent, #8B4513);
+                color: var(--color-accent, #8b5e34);
                 font-size: var(--text-sm, 0.875rem);
                 font-weight: var(--font-medium, 500);
+            }
+
+            .drop-placeholder {
+                height: 72px;
+                border: 2px dashed var(--color-accent, #8b5e34);
+                border-radius: var(--radius-md, 10px);
+                background: rgba(139, 94, 52, 0.08);
             }
 
             /* Empty column state */
@@ -383,9 +396,13 @@ export class BtPipelineView extends BaseComponent {
         // Make cards draggable
         this.$$('bt-book-card[variant="pipeline"]').forEach(card => {
             const innerCard = card.shadowRoot?.querySelector('.book-card');
-            if (innerCard) {
-                innerCard.addEventListener('dragstart', (e) => this._handleDragStart(e, card));
-                innerCard.addEventListener('dragend', (e) => this._handleDragEnd(e, card));
+            const dragHandle = card.shadowRoot?.querySelector('.drag-handle');
+            const dragTarget = dragHandle || innerCard;
+
+            if (dragTarget) {
+                dragTarget.addEventListener('dragstart', (e) => this._handleDragStart(e, card));
+                dragTarget.addEventListener('dragend', (e) => this._handleDragEnd(e, card));
+                dragTarget.addEventListener('pointerdown', (e) => this._handlePointerDown(e, card));
             }
         });
 
@@ -400,6 +417,9 @@ export class BtPipelineView extends BaseComponent {
 
     _handleDragStart(e, card) {
         this._draggedCard = card;
+        this._dragOriginColumn = card.closest('.column-books');
+        this._dragTargetColumn = this._dragOriginColumn;
+        this._ensurePlaceholder(card);
         const innerCard = card.shadowRoot?.querySelector('.book-card');
         if (innerCard) {
             innerCard.classList.add('dragging');
@@ -409,12 +429,7 @@ export class BtPipelineView extends BaseComponent {
     }
 
     _handleDragEnd(e, card) {
-        const innerCard = card.shadowRoot?.querySelector('.book-card');
-        if (innerCard) {
-            innerCard.classList.remove('dragging');
-        }
-        this.$$('.column-books').forEach(col => col.classList.remove('drag-over'));
-        this._draggedCard = null;
+        this._clearDragState(card);
     }
 
     _handleDragOver(e) {
@@ -424,12 +439,15 @@ export class BtPipelineView extends BaseComponent {
 
     _handleDragEnter(e, column) {
         e.preventDefault();
-        column.classList.add('drag-over');
+        this._setDragTarget(column);
     }
 
     _handleDragLeave(e, column) {
         if (!column.contains(e.relatedTarget)) {
             column.classList.remove('drag-over');
+            if (this._dragTargetColumn === column) {
+                this._setDragTarget(null);
+            }
         }
     }
 
@@ -437,20 +455,82 @@ export class BtPipelineView extends BaseComponent {
         e.preventDefault();
         column.classList.remove('drag-over');
 
-        if (!this._draggedCard) return;
+        await this._moveDraggedCardToColumn(column);
+    }
+
+    _ensurePlaceholder(card) {
+        if (this._dragPlaceholder) return;
+        const placeholder = document.createElement('div');
+        placeholder.className = 'drop-placeholder';
+        const rect = card.getBoundingClientRect();
+        placeholder.style.height = `${Math.max(60, rect.height)}px`;
+        this._dragPlaceholder = placeholder;
+        if (this._dragOriginColumn) {
+            this._dragOriginColumn.insertBefore(placeholder, card);
+        }
+    }
+
+    _setDragTarget(column) {
+        if (this._dragTargetColumn === column) return;
+        this.$$('.column-books').forEach(col => col.classList.remove('drag-over'));
+        this._dragTargetColumn = column;
+        if (column) {
+            column.classList.add('drag-over');
+            if (this._dragPlaceholder && column) {
+                column.appendChild(this._dragPlaceholder);
+            }
+        }
+    }
+
+    _clearDragState(card) {
+        const targetCard = card || this._draggedCard;
+        if (targetCard) {
+            const innerCard = targetCard.shadowRoot?.querySelector('.book-card');
+            if (innerCard) {
+                innerCard.classList.remove('dragging');
+            }
+            targetCard.style.position = '';
+            targetCard.style.top = '';
+            targetCard.style.left = '';
+            targetCard.style.width = '';
+            targetCard.style.height = '';
+            targetCard.style.zIndex = '';
+            targetCard.style.pointerEvents = '';
+        }
+
+        this.$$('.column-books').forEach(col => col.classList.remove('drag-over'));
+        if (this._dragPlaceholder) {
+            this._dragPlaceholder.remove();
+            this._dragPlaceholder = null;
+        }
+        this._draggedCard = null;
+        this._dragOriginColumn = null;
+        this._dragTargetColumn = null;
+        this._dragPointerId = null;
+        this._pointerOffset = null;
+    }
+
+    async _moveDraggedCardToColumn(column) {
+        if (!this._draggedCard || !column) {
+            this._clearDragState();
+            return;
+        }
 
         const newStatus = column.dataset.status;
         const oldStatus = this._draggedCard.dataset.status;
         const bookId = this._draggedCard.dataset.bookId;
-        const userBookId = this._draggedCard.dataset.userBookId;
 
-        if (newStatus === oldStatus) return;
+        if (newStatus === oldStatus) {
+            this._clearDragState();
+            return;
+        }
 
         // Check WIP limit for reading column
         const { wipLimit, pipeline } = this.state;
         if (newStatus === 'reading') {
             const currentReading = pipeline?.reading?.length || 0;
             if (currentReading >= wipLimit) {
+                this._clearDragState();
                 this.emit('toast', {
                     message: `You've reached your WIP limit of ${wipLimit} books. Finish or pause a book before starting a new one.`,
                     type: 'warning'
@@ -459,35 +539,82 @@ export class BtPipelineView extends BaseComponent {
             }
         }
 
+        this._clearDragState();
+
         // Optimistic update - move book in local state immediately
         const updatedPipeline = { ...pipeline };
 
-        // Find the book in the old column
         const bookIndex = updatedPipeline[oldStatus]?.findIndex(b => b.book_id == bookId);
         if (bookIndex === -1 || bookIndex === undefined) return;
 
         const book = { ...updatedPipeline[oldStatus][bookIndex], status: newStatus };
 
-        // Remove from old column
         updatedPipeline[oldStatus] = updatedPipeline[oldStatus].filter(b => b.book_id != bookId);
-
-        // Add to new column (at the beginning)
         updatedPipeline[newStatus] = [book, ...(updatedPipeline[newStatus] || [])];
 
-        // Update state immediately for smooth UX
         this.setState({ pipeline: updatedPipeline });
 
-        // API call in background
         try {
             await api.updateBook(bookId, { status: newStatus });
-            // Emit event for other views that might need to refresh
             events.emit(EVENT_NAMES.BOOK_UPDATED, { bookId, status: newStatus });
         } catch (error) {
             console.error('Error updating book status:', error);
-            // Rollback on failure - reload from server
             await this._loadData();
             this.emit('toast', { message: 'Failed to update book status', type: 'error' });
         }
+    }
+
+    _handlePointerDown(e, card) {
+        if (e.button && e.button !== 0) return;
+        e.preventDefault();
+
+        this._draggedCard = card;
+        this._dragOriginColumn = card.closest('.column-books');
+        this._dragTargetColumn = this._dragOriginColumn;
+        this._dragPointerId = e.pointerId;
+
+        const rect = card.getBoundingClientRect();
+        this._pointerOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+        this._ensurePlaceholder(card);
+
+        card.style.position = 'fixed';
+        card.style.top = `${rect.top}px`;
+        card.style.left = `${rect.left}px`;
+        card.style.width = `${rect.width}px`;
+        card.style.height = `${rect.height}px`;
+        card.style.zIndex = '1000';
+        card.style.pointerEvents = 'none';
+
+        const innerCard = card.shadowRoot?.querySelector('.book-card');
+        if (innerCard) {
+            innerCard.classList.add('dragging');
+        }
+
+        window.addEventListener('pointermove', this._handlePointerMoveBound);
+        window.addEventListener('pointerup', this._handlePointerUpBound);
+        window.addEventListener('pointercancel', this._handlePointerUpBound);
+    }
+
+    _handlePointerMove(e) {
+        if (!this._draggedCard || e.pointerId !== this._dragPointerId) return;
+        const x = e.clientX - (this._pointerOffset?.x || 0);
+        const y = e.clientY - (this._pointerOffset?.y || 0);
+
+        this._draggedCard.style.left = `${x}px`;
+        this._draggedCard.style.top = `${y}px`;
+
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const column = target?.closest('.column-books');
+        this._setDragTarget(column);
+    }
+
+    _handlePointerUp(e) {
+        if (e.pointerId !== this._dragPointerId) return;
+        window.removeEventListener('pointermove', this._handlePointerMoveBound);
+        window.removeEventListener('pointerup', this._handlePointerUpBound);
+        window.removeEventListener('pointercancel', this._handlePointerUpBound);
+        this._moveDraggedCardToColumn(this._dragTargetColumn);
     }
 
     async onConnect() {

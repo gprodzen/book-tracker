@@ -16,14 +16,15 @@ export class BtBookForm extends BaseComponent {
         super();
         this.setState({
             mode: 'search', // 'search', 'confirm', 'manual'
-            searchQuery: '',
             searchResults: [],
             searching: false,
             selectedBook: null,
             submitting: false,
-            error: null
+            error: null,
+            objectives: []
         });
 
+        this._searchQuery = '';
         this._debouncedSearch = this.debounce(this._handleSearch.bind(this), 500);
     }
 
@@ -234,6 +235,12 @@ export class BtBookForm extends BaseComponent {
                 padding: 40px;
                 color: var(--text-muted, #8B7E6A);
             }
+
+            .objective-help {
+                font-size: 0.75rem;
+                color: var(--text-muted, #8B7E6A);
+                margin-top: 6px;
+            }
         `;
     }
 
@@ -257,20 +264,20 @@ export class BtBookForm extends BaseComponent {
     }
 
     _renderSearchMode() {
-        const { searchQuery, searchResults, searching, error } = this.state;
+        const { searchResults, searching, error } = this.state;
 
         return `
             <div class="search-mode">
                 <div class="form-group">
                     <label>Search for a book</label>
-                    <input type="text" ref="searchInput" placeholder="Title, author, or ISBN..." value="${this.escapeHtml(searchQuery)}">
+                    <input type="text" ref="searchInput" placeholder="Title, author, or ISBN..." value="${this.escapeHtml(this._searchQuery)}">
                 </div>
 
                 ${error ? `<div class="error-message">${this.escapeHtml(error)}</div>` : ''}
 
                 <div class="search-results" ref="searchResults">
                     ${searching ? '<bt-loading text="Searching..."></bt-loading>' : ''}
-                    ${!searching && searchQuery.length >= 2 && searchResults.length === 0 ? `
+                    ${!searching && this._searchQuery.length >= 2 && searchResults.length === 0 ? `
                         <div class="empty-state">No books found. Try a different search or add manually.</div>
                     ` : ''}
                     ${!searching ? searchResults.map(book => this._renderSearchResult(book)).join('') : ''}
@@ -334,6 +341,11 @@ export class BtBookForm extends BaseComponent {
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Objectives</label>
+                        ${this._renderObjectiveSelect('confirmObjectives')}
+                        <div class="objective-help">Select one or more objectives for this book.</div>
+                    </div>
+                    <div class="form-group">
                         <label>Idea Source</label>
                         <textarea ref="confirmIdeaSource" placeholder="Where did you hear about this book?"></textarea>
                     </div>
@@ -385,6 +397,11 @@ export class BtBookForm extends BaseComponent {
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Objectives</label>
+                        ${this._renderObjectiveSelect('manualObjectives')}
+                        <div class="objective-help">Select one or more objectives for this book.</div>
+                    </div>
+                    <div class="form-group">
                         <label>Idea Source</label>
                         <textarea ref="manualIdeaSource" placeholder="Where did you hear about this book?"></textarea>
                     </div>
@@ -403,7 +420,7 @@ export class BtBookForm extends BaseComponent {
 
         // Tab buttons
         this.$$('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            this.addListener(btn, 'click', () => {
                 this.setState({ mode: btn.dataset.mode, error: null });
             });
         });
@@ -412,16 +429,16 @@ export class BtBookForm extends BaseComponent {
             // Search input
             const searchInput = this.ref('searchInput');
             if (searchInput) {
-                searchInput.addEventListener('input', () => {
-                    this.setState({ searchQuery: searchInput.value });
-                    this._debouncedSearch(searchInput.value);
+                this.addListener(searchInput, 'input', () => {
+                    this._searchQuery = searchInput.value;
+                    this._debouncedSearch(this._searchQuery);
                 });
                 setTimeout(() => searchInput.focus(), 0);
             }
 
             // Search results
             this.$$('.search-result-item').forEach(item => {
-                item.addEventListener('click', () => {
+                this.addListener(item, 'click', () => {
                     const book = JSON.parse(item.dataset.book);
                     this.setState({ selectedBook: book, mode: 'confirm', error: null });
                 });
@@ -430,34 +447,22 @@ export class BtBookForm extends BaseComponent {
 
         if (mode === 'confirm') {
             // Back button
-            const backBtn = this.ref('backBtn');
-            if (backBtn) {
-                backBtn.addEventListener('click', () => {
-                    this.setState({ mode: 'search', selectedBook: null, error: null });
-                });
-            }
+            this.addListener(this.ref('backBtn'), 'click', () => {
+                this.setState({ mode: 'search', selectedBook: null, error: null });
+            });
 
             // Confirm form
-            const confirmForm = this.ref('confirmForm');
-            if (confirmForm) {
-                confirmForm.addEventListener('submit', (e) => this._handleConfirmSubmit(e));
-            }
+            this.addListener(this.ref('confirmForm'), 'submit', (e) => this._handleConfirmSubmit(e));
         }
 
         if (mode === 'manual') {
             // Cancel button
-            const cancelBtn = this.ref('cancelBtn');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', () => {
-                    this.emit('cancel');
-                });
-            }
+            this.addListener(this.ref('cancelBtn'), 'click', () => {
+                this.emit('cancel');
+            });
 
             // Manual form
-            const manualForm = this.ref('manualForm');
-            if (manualForm) {
-                manualForm.addEventListener('submit', (e) => this._handleManualSubmit(e));
-            }
+            this.addListener(this.ref('manualForm'), 'submit', (e) => this._handleManualSubmit(e));
 
             // Focus title input
             const titleInput = this.ref('manualTitle');
@@ -465,6 +470,39 @@ export class BtBookForm extends BaseComponent {
                 setTimeout(() => titleInput.focus(), 0);
             }
         }
+    }
+
+    async onConnect() {
+        await this._loadObjectives();
+    }
+
+    async _loadObjectives() {
+        try {
+            const paths = await api.getPaths();
+            this.setState({ objectives: paths || [] });
+        } catch (error) {
+            console.error('Failed to load objectives:', error);
+        }
+    }
+
+    _renderObjectiveSelect(refName) {
+        const { objectives } = this.state;
+        if (!objectives || objectives.length === 0) {
+            return '<div class="objective-help">No objectives yet. Create one in Objectives.</div>';
+        }
+        return `
+            <select ref="${refName}" multiple size="4">
+                ${objectives.map(obj => `
+                    <option value="${obj.id}">${this.escapeHtml(obj.name)}</option>
+                `).join('')}
+            </select>
+        `;
+    }
+
+    _getSelectedObjectiveIds(refName) {
+        const select = this.ref(refName);
+        if (!select) return [];
+        return Array.from(select.selectedOptions).map(option => parseInt(option.value, 10));
     }
 
     async _handleSearch(query) {
@@ -493,6 +531,7 @@ export class BtBookForm extends BaseComponent {
 
         const { selectedBook } = this.state;
         const sourceBookId = this.getAttribute('source-book-id');
+        const objectiveIds = this._getSelectedObjectiveIds('confirmObjectives');
 
         const bookData = {
             title: selectedBook.title,
@@ -506,7 +545,8 @@ export class BtBookForm extends BaseComponent {
             open_library_key: selectedBook.open_library_key || null,
             status: this.ref('confirmStatus').value,
             idea_source: this.ref('confirmIdeaSource').value || null,
-            source_book_id: sourceBookId ? parseInt(sourceBookId) : null
+            source_book_id: sourceBookId ? parseInt(sourceBookId) : null,
+            objective_ids: objectiveIds
         };
 
         await this._createBook(bookData);
@@ -516,6 +556,7 @@ export class BtBookForm extends BaseComponent {
         e.preventDefault();
 
         const sourceBookId = this.getAttribute('source-book-id');
+        const objectiveIds = this._getSelectedObjectiveIds('manualObjectives');
 
         const bookData = {
             title: this.ref('manualTitle').value,
@@ -525,7 +566,8 @@ export class BtBookForm extends BaseComponent {
             year_published: parseInt(this.ref('manualYear').value) || null,
             status: this.ref('manualStatus').value,
             idea_source: this.ref('manualIdeaSource').value || null,
-            source_book_id: sourceBookId ? parseInt(sourceBookId) : null
+            source_book_id: sourceBookId ? parseInt(sourceBookId) : null,
+            objective_ids: objectiveIds
         };
 
         await this._createBook(bookData);
@@ -553,13 +595,13 @@ export class BtBookForm extends BaseComponent {
     reset() {
         this.setState({
             mode: 'search',
-            searchQuery: '',
             searchResults: [],
             searching: false,
             selectedBook: null,
             submitting: false,
             error: null
         });
+        this._searchQuery = '';
     }
 }
 

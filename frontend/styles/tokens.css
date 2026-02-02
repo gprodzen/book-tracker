@@ -1,66 +1,69 @@
 /**
- * Design Tokens - Warm Library Theme
+ * Design Tokens - Professional Editorial Theme
  *
- * A refined light theme with warm cream backgrounds, sienna accents,
- * and Crimson Pro serif typography for a classic library aesthetic.
+ * Warm, refined editorial aesthetic with bronze accents,
+ * clean surfaces, and premium typography pairing.
  */
 
 :root {
     /* ==========================================================================
-       Colors - Warm Library Theme
+       Colors - Professional Editorial Theme
        ========================================================================== */
 
-    /* Background colors - cream/parchment tones */
-    --color-bg-primary: #FAF7F2;
-    --color-bg-secondary: #F5F0E8;
-    --color-bg-tertiary: #EDE6DB;
-    --color-bg-elevated: #E8E0D4;
+    /* Background colors - soft paper tones */
+    --color-bg-primary: #f7f4ef;
+    --color-bg-secondary: #f1ede6;
+    --color-bg-tertiary: #fbfaf8;
+    --color-bg-elevated: #ece6dc;
 
     /* Surface colors for cards, modals */
-    --color-surface: #FFFFFF;
-    --color-surface-hover: #FDFCFA;
-    --color-surface-active: #F8F5F0;
+    --color-surface: #ffffff;
+    --color-surface-hover: #fbfaf8;
+    --color-surface-active: #f4efe8;
 
     /* Border colors */
-    --color-border: #D4C9B8;
-    --color-border-subtle: #E5DED2;
-    --color-border-emphasis: #C4B8A4;
+    --color-border: #e3ddd1;
+    --color-border-subtle: #efe9df;
+    --color-border-emphasis: #d5cbbd;
 
     /* Text colors */
-    --color-text-primary: #2C2416;
-    --color-text-secondary: #5C5244;
-    --color-text-muted: #8B7E6A;
-    --color-text-inverse: #FFFFFF;
+    --color-text-primary: #2b2418;
+    --color-text-secondary: #6b6051;
+    --color-text-muted: #8a7d6b;
+    --color-text-inverse: #ffffff;
 
-    /* Accent - Sienna/Burgundy (classic library feel) */
-    --color-accent: #8B4513;
-    --color-accent-hover: #A0522D;
-    --color-accent-muted: rgba(139, 69, 19, 0.15);
-    --color-accent-subtle: rgba(139, 69, 19, 0.08);
+    /* Accent - Bronze (primary), Teal (secondary) */
+    --color-accent: #8b5e34;
+    --color-accent-hover: #9a6a3e;
+    --color-accent-muted: rgba(139, 94, 52, 0.15);
+    --color-accent-subtle: rgba(139, 94, 52, 0.08);
+    --color-accent-alt: #2f6f6d;
+    --color-accent-alt-muted: rgba(47, 111, 109, 0.15);
 
     /* Semantic colors */
-    --color-success: #2E7D4A;
-    --color-success-muted: rgba(46, 125, 74, 0.15);
-    --color-warning: #B8860B;
-    --color-warning-muted: rgba(184, 134, 11, 0.15);
-    --color-error: #A0522D;
-    --color-error-muted: rgba(160, 82, 45, 0.15);
-    --color-info: #4A6B8A;
-    --color-info-muted: rgba(74, 107, 138, 0.15);
+    --color-success: #2f8f5b;
+    --color-success-muted: rgba(47, 143, 91, 0.15);
+    --color-warning: #b07a2f;
+    --color-warning-muted: rgba(176, 122, 47, 0.15);
+    --color-error: #c7514d;
+    --color-error-muted: rgba(199, 81, 77, 0.15);
+    --color-info: #2f6f6d;
+    --color-info-muted: rgba(47, 111, 109, 0.15);
 
     /* Status colors for books */
-    --color-want-to-read: #7B5C9E;
-    --color-queued: #2E7D4A;
-    --color-reading: #8B4513;
-    --color-finished: #2E7D4A;
+    --color-want-to-read: #2f6f6d;
+    --color-queued: #2f8f5b;
+    --color-reading: #8b5e34;
+    --color-finished: #2f8f5b;
+    --color-abandoned: #c7514d;
 
     /* ==========================================================================
        Typography
        ========================================================================== */
 
     /* Font families */
-    --font-display: 'Crimson Pro', Georgia, 'Times New Roman', serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+    --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
 
     /* Font sizes - fluid typography with clamp() */
@@ -116,7 +119,7 @@
     --space-24: 96px;
 
     /* ==========================================================================
-       Border Radius - Increased for softer, friendlier appearance
+       Border Radius - Soft, editorial rounds
        ========================================================================== */
 
     --radius-none: 0;
@@ -128,48 +131,44 @@
     --radius-full: 9999px;
 
     /* ==========================================================================
-       Shadows - Multi-layered depth for modern feel
+       Shadows - Soft editorial depth
        ========================================================================== */
 
     /* Subtle shadows */
     --shadow-sm:
-        0 1px 2px rgba(44, 36, 22, 0.04),
-        0 2px 4px rgba(44, 36, 22, 0.06);
+        0 1px 2px rgba(40, 32, 20, 0.04),
+        0 2px 4px rgba(40, 32, 20, 0.06);
 
-    /* Medium shadows - multi-layered depth */
+    /* Medium shadows */
     --shadow-md:
-        0 2px 4px rgba(44, 36, 22, 0.06),
-        0 4px 12px rgba(44, 36, 22, 0.08),
-        0 8px 24px rgba(44, 36, 22, 0.04);
+        0 8px 18px rgba(40, 32, 20, 0.08),
+        0 2px 6px rgba(40, 32, 20, 0.06);
 
     /* Large shadows */
     --shadow-lg:
-        0 4px 8px rgba(44, 36, 22, 0.06),
-        0 8px 16px rgba(44, 36, 22, 0.08),
-        0 16px 32px rgba(44, 36, 22, 0.06);
+        0 12px 28px rgba(40, 32, 20, 0.1),
+        0 6px 12px rgba(40, 32, 20, 0.06);
 
     /* Extra large shadows */
     --shadow-xl:
-        0 8px 16px rgba(44, 36, 22, 0.06),
-        0 16px 32px rgba(44, 36, 22, 0.08),
-        0 24px 48px rgba(44, 36, 22, 0.06);
+        0 18px 40px rgba(40, 32, 20, 0.12),
+        0 10px 18px rgba(40, 32, 20, 0.08);
 
     /* Accent glow */
     --shadow-glow:
-        0 0 20px rgba(139, 69, 19, 0.15),
-        0 0 40px rgba(139, 69, 19, 0.08);
+        0 0 20px rgba(139, 94, 52, 0.15),
+        0 0 40px rgba(139, 94, 52, 0.08);
 
     /* Card hover shadow - elevated with glow */
     --shadow-card-hover:
-        0 4px 8px rgba(44, 36, 22, 0.06),
-        0 8px 24px rgba(44, 36, 22, 0.1),
-        0 16px 32px rgba(44, 36, 22, 0.06),
-        0 0 0 1px rgba(139, 69, 19, 0.08);
+        0 12px 28px rgba(40, 32, 20, 0.12),
+        0 6px 14px rgba(40, 32, 20, 0.08),
+        0 0 0 1px rgba(139, 94, 52, 0.08);
 
     /* Button glow for primary actions */
     --shadow-button-glow:
-        0 4px 12px rgba(139, 69, 19, 0.25),
-        0 8px 24px rgba(139, 69, 19, 0.15);
+        0 6px 16px rgba(139, 94, 52, 0.25),
+        0 10px 24px rgba(139, 94, 52, 0.18);
 
     /* ==========================================================================
        Transitions
@@ -250,9 +249,9 @@
     --accent-hover: var(--color-accent-hover);
     --green: var(--color-success);
     --yellow: var(--color-warning);
-    --orange: #A0522D;
+    --orange: var(--color-warning);
     --red: var(--color-error);
-    --purple: var(--color-interested);
+    --purple: var(--color-want-to-read);
 
     /* Spacing (old names) */
     --space-xs: var(--space-1);

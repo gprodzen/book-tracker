@@ -5,8 +5,8 @@ A personal reading management application with a Kanban-style pipeline view for 
 ## Features
 
 - **Pipeline View**: Kanban board to move books through stages (Interested → Owned → Queued → Reading → Finished)
-- **Dashboard**: Overview of currently reading books, learning paths, and queued items
-- **Learning Paths**: Organize books into themed learning paths with progress tracking
+- **Home (Now Reading Shelf)**: The homepage is a calm, focused shelf for in‑progress books with quick page updates
+- **Objectives (Learning Paths)**: Organize books into themed objectives with progress tracking
 - **Library**: Full library view with search and filtering
 - **WIP Limits**: Configurable work-in-progress limits to focus your reading
 - **Offline Support**: Works offline with automatic sync when back online
@@ -88,23 +88,39 @@ book-tracker/
 
 ## Design System
 
-The UI uses a refined dark theme with warm amber accent (#F5A623) for a distinctive "library" feel.
+> **Cornerstone Reference**: See [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) for the complete design specification and [`frontend/design-system/card-reference.html`](frontend/design-system/card-reference.html) for the interactive reference implementation.
 
-### Fonts
-- **Display**: Inter (headings, UI text)
-- **Mono**: IBM Plex Mono (numbers, code)
+The UI uses a **Warm Playback** design language inspired by Spotify, Strava, and Apple Books. The cornerstone component is the **Warm Playback Card** (320x320px) featuring:
+
+- **Gradient header** with book cover, title, and completion percentage
+- **Learning path tags** with color-coded pills
+- **Stats strip** showing: Last Read, Est. Left, Started
+- **Playback-style progress bar** with page numbers
+- **Increment controls** (-10, -1, +, +1, +10) for quick page logging
+
+### Visual Identity
+- **Tone**: Calm, focused, premium
+- **Mood**: Encouraging, warm, professional
+- **Metaphor**: A personal reading studio
+
+### Typography
+- **Display**: Libre Baskerville (headings)
+- **Body**: IBM Plex Sans (UI text)
+- **Mono**: IBM Plex Mono (numbers, stats)
 
 ### Colors
-- Background: Deep blue-gray tones (#0a0e14, #12171f, #1a2028)
-- Text: Light grays (#e6edf5, #a3b3c7, #6b7d93)
-- Accent: Warm amber (#F5A623)
-- Status colors for book stages (purple, blue, green, amber, emerald)
+- **Background**: Warm paper tones (#f7f4ef, #f1ede6)
+- **Text**: Dark brown/ink (#2b2418, #6b6051)
+- **Accent**: Bronze (#8b5e34) — primary
+- **Accent Alt**: Teal (#2f6f6d) — secondary
+- **Warning**: Amber (#b07a2f) — stale/attention states
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/dashboard` | Dashboard data |
+| GET | `/api/home` | Home shelf data |
+| GET | `/api/dashboard` | Dashboard data (legacy) |
 | GET | `/api/pipeline` | Pipeline/kanban data |
 | GET | `/api/books` | List all books |
 | POST | `/api/books` | Add a new book |

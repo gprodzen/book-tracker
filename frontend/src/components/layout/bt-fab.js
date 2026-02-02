@@ -80,7 +80,7 @@ export class BtFab extends BaseComponent {
             .label {
                 font-size: 0.875rem;
                 font-weight: 600;
-                font-family: var(--font-body, 'Inter', sans-serif);
+                font-family: var(--font-body, 'IBM Plex Sans', sans-serif);
             }
 
             /* Mini FAB variant */

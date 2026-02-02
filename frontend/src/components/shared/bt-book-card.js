@@ -211,6 +211,7 @@ export class BtBookCard extends BaseComponent {
             .pipeline-layout {
                 display: flex;
                 gap: var(--space-3, 12px);
+                align-items: flex-start;
             }
 
             .pipeline-cover {
@@ -249,6 +250,34 @@ export class BtBookCard extends BaseComponent {
                 gap: var(--space-2, 8px);
                 flex-wrap: wrap;
                 align-items: center;
+            }
+
+            .drag-handle {
+                margin-left: auto;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm, 6px);
+                border: 1px solid var(--color-border-subtle, #efe9df);
+                background: var(--color-bg-secondary, #f1ede6);
+                color: var(--color-text-muted, #8a7d6b);
+                cursor: grab;
+                user-select: none;
+                flex-shrink: 0;
+                touch-action: none;
+            }
+
+            .drag-handle:hover {
+                border-color: var(--color-border-emphasis, #d5cbbd);
+                color: var(--color-text-secondary, #6b6051);
+            }
+
+            .handle-grip {
+                font-size: 0.75rem;
+                letter-spacing: 1px;
+                font-family: var(--font-mono, 'IBM Plex Mono', monospace);
             }
 
             .pipeline-progress {
@@ -458,6 +487,9 @@ export class BtBookCard extends BaseComponent {
                             ${pathTags}
                         </div>
                     </div>
+                    <div class="drag-handle" draggable="true" ref="dragHandle" role="button" tabindex="0" aria-label="Drag to move">
+                        <span class="handle-grip">|||</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -487,6 +519,13 @@ export class BtBookCard extends BaseComponent {
         if (card) {
             card.addEventListener('click', () => {
                 this.emit('book-click', { book: this._book });
+            });
+        }
+
+        const dragHandle = this.$('.drag-handle');
+        if (dragHandle) {
+            dragHandle.addEventListener('click', (event) => {
+                event.stopPropagation();
             });
         }
     }
